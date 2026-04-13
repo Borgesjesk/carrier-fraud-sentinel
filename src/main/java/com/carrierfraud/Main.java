@@ -1,5 +1,6 @@
 package com.carrierfraud;
 
+import com.carrierfraud.application.AlertObserver;
 import com.carrierfraud.application.FraudDetectionService;
 import com.carrierfraud.application.RiskScoreEvaluator;
 import com.carrierfraud.application.rules.FailedPaymentsRule;
@@ -8,6 +9,9 @@ import com.carrierfraud.application.rules.MarketPriceRule;
 import com.carrierfraud.domain.RiskAlert;
 import com.carrierfraud.domain.StrategyRule;
 import com.carrierfraud.domain.Transaction;
+import com.carrierfraud.infrastructure.AuditLogObserver;
+import com.carrierfraud.infrastructure.ConsoleAlertObserver;
+import com.carrierfraud.infrastructure.DatabaseAlertObserver;
 
 import java.util.List;
 
@@ -22,7 +26,13 @@ public class Main {
 
         List<StrategyRule> rules = List.of(failedPaymentsRule, marketPriceRule, highOfferCountRule);
 
-        FraudDetectionService fraudDetectionService = new FraudDetectionService(rules, 0.5);
+        List<AlertObserver> observers = List.of(
+                new ConsoleAlertObserver(),
+                new AuditLogObserver(),
+                new DatabaseAlertObserver()
+        );
+
+        FraudDetectionService fraudDetectionService = new FraudDetectionService(rules, 0.5, observers);
 
         Transaction transaction = new Transaction("WWW123", "PT", 5, 20, 3000.0, 500, "It was the drivers fault", 2, 10, true);
 

@@ -7,16 +7,17 @@ import com.carrierfraud.domain.Transaction;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public class FraudDetectionService {
 
     private final List<StrategyRule> rules;
     private final double threshold;
+    private final List<AlertObserver> observers;
 
-    public FraudDetectionService(List<StrategyRule> rules, double threshold) {
+    public FraudDetectionService(List<StrategyRule> rules, double threshold, List<AlertObserver> observers) {
         this.rules = rules;
         this.threshold = threshold;
+        this.observers = observers;
     }
 
     public List<StrategyRule> getRules() {
@@ -27,6 +28,10 @@ public class FraudDetectionService {
         return threshold;
     }
 
+    public List<AlertObserver> getObservers() {
+        return observers;
+    }
+
     public RiskAlert analyse(Transaction transaction) {
         double totalScore = 0.0;
         for (StrategyRule rule : rules) {
@@ -34,9 +39,12 @@ public class FraudDetectionService {
 
         }
         if (totalScore >= threshold) {
-            return new RiskAlert(transaction.getCarrierName(), totalScore, "Multiple rules", LocalDateTime.now(), AlertStatus.NEW);
-        } else {
-            return null;
+            RiskAlert alert = new RiskAlert(transaction.getCarrierName(), totalScore, "Multiple rules", LocalDateTime.now(), AlertStatus.NEW);
+            for (AlertObserver observer : observers) {
+                observer.notify(alert);
+            }
+            return alert;
         }
+        return null;
     }
 }
