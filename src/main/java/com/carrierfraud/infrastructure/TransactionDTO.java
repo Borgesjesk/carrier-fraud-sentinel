@@ -1,4 +1,15 @@
 package com.carrierfraud.infrastructure;
 
-public class TransactionDTO {
+public record TransactionDTO(
+
+        String carrierName,
+        String transportName,
+        int failedPayments,
+        int succeededPayments,
+        double offerPrice,
+        int numberOfOffers,
+        String incidentExplanation,
+        boolean missingData
+) {
 }
+
