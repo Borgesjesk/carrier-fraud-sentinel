@@ -2,7 +2,9 @@ package com.carrierfraud.application.rules;
 
 import com.carrierfraud.domain.StrategyRule;
 import com.carrierfraud.domain.Transaction;
+import org.springframework.stereotype.Component;
 
+@Component
 public class FailedPaymentsRule implements StrategyRule {
 
     @Override

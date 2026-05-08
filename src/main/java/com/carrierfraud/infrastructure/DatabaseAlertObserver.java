@@ -2,7 +2,9 @@ package com.carrierfraud.infrastructure;
 
 import com.carrierfraud.application.AlertObserver;
 import com.carrierfraud.domain.RiskAlert;
+import org.springframework.stereotype.Component;
 
+@Component
 public class DatabaseAlertObserver implements AlertObserver {
 
 

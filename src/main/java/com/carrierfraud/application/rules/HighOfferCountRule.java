@@ -2,13 +2,15 @@ package com.carrierfraud.application.rules;
 
 import com.carrierfraud.domain.StrategyRule;
 import com.carrierfraud.domain.Transaction;
+import org.springframework.stereotype.Component;
 
+@Component
 public class HighOfferCountRule implements StrategyRule {
 
-    private final int maxNormalOffers;
+    private int maxNormalOffers;
 
-    public HighOfferCountRule(int maxNormalOffers) {
-        this.maxNormalOffers = maxNormalOffers;
+    public HighOfferCountRule() {
+        this.maxNormalOffers = 200;
     }
 
     @Override

@@ -26,6 +26,19 @@ public class Transaction {
         this.missingData = missingData;
     }
 
+    public Transaction() {
+        this.carrierName = null;
+        this.transportName = null;
+        this.failedPayments = 0;
+        this.succeededPayments = 0;
+        this.offerPrice = 0.0;
+        this.numberOfOffers = 0;
+        this.incidentExplanation = null;
+        this.reviewScore = 0;
+        this.reportedIncidents = 0;
+        this.missingData = false;
+    }
+
     public String getCarrierName() {
         return carrierName;
     }

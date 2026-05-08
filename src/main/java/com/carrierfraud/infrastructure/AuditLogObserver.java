@@ -2,10 +2,12 @@ package com.carrierfraud.infrastructure;
 
 import com.carrierfraud.application.AlertObserver;
 import com.carrierfraud.domain.RiskAlert;
+import org.springframework.stereotype.Component;
 
 import java.io.FileWriter;
 import java.io.IOException;
 
+@Component
 public class AuditLogObserver implements AlertObserver {
 
 

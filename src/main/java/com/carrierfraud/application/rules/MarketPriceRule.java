@@ -2,13 +2,15 @@ package com.carrierfraud.application.rules;
 
 import com.carrierfraud.domain.StrategyRule;
 import com.carrierfraud.domain.Transaction;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MarketPriceRule implements StrategyRule {
 
-    private final double marketAveragePrice;
+    private double marketAveragePrice;
 
-    public MarketPriceRule(double marketAveragePrice) {
-        this.marketAveragePrice = marketAveragePrice;
+    public MarketPriceRule() {
+        this.marketAveragePrice = 1500.0;
     }
 
     @Override
