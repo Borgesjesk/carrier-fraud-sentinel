@@ -1,14 +1,23 @@
 package com.carrierfraud.domain;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDateTime;
 
+@Document(collection = "alerts")
 public class RiskAlert {
 
-    private final String carrierName;
-    private final double riskScore;
-    private final String triggeredRule;
-    private final LocalDateTime alertDateTime;
-    private final AlertStatus alertStatus;
+    @Id
+    private String id;
+    private String carrierName;
+    private double riskScore;
+    private String triggeredRule;
+    private LocalDateTime alertDateTime;
+    private AlertStatus alertStatus;
+
+    public RiskAlert() {
+    }
 
     public RiskAlert(String carrierName, double riskScore, String triggeredRule, LocalDateTime alertDateTime, AlertStatus alertStatus) {
         this.carrierName = carrierName;
@@ -17,18 +26,27 @@ public class RiskAlert {
         this.alertDateTime = alertDateTime;
         this.alertStatus = alertStatus;
     }
+
+    public String getId() {
+        return id;
+    }
+
     public String getCarrierName() {
         return carrierName;
     }
+
     public double getRiskScore() {
         return riskScore;
     }
+
     public String getTriggeredRule() {
         return triggeredRule;
     }
+
     public LocalDateTime getAlertDateTime() {
         return alertDateTime;
     }
+
     public AlertStatus getAlertStatus() {
         return alertStatus;
     }

@@ -4,6 +4,7 @@ import com.carrierfraud.domain.AlertStatus;
 import com.carrierfraud.domain.RiskAlert;
 import com.carrierfraud.domain.StrategyRule;
 import com.carrierfraud.domain.Transaction;
+import com.carrierfraud.infrastructure.RiskAlertRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,12 +15,14 @@ public class FraudDetectionService {
 
     private final List<StrategyRule> rules;
     private final List<AlertObserver> observers;
+    private final RiskAlertRepository alertRepository;
     private final double threshold = 0.5;
 
 
-    public FraudDetectionService(List<StrategyRule> rules, List<AlertObserver> observers) {
+    public FraudDetectionService(List<StrategyRule> rules, List<AlertObserver> observers, RiskAlertRepository alertRepository) {
         this.rules = rules;
         this.observers = observers;
+        this.alertRepository = alertRepository;
     }
 
     public RiskAlert analyse(Transaction transaction) {
@@ -29,6 +32,7 @@ public class FraudDetectionService {
         }
         if (totalScore >= threshold) {
             RiskAlert alert = new RiskAlert(transaction.getCarrierName(), totalScore, "Multiple rules", LocalDateTime.now(), AlertStatus.NEW);
+            alertRepository.save(alert);
             for (AlertObserver observer : observers) {
                 observer.notify(alert);
             }
