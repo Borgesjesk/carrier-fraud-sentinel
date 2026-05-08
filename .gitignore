@@ -35,5 +35,5 @@ build/
 ### Mac OS ###
 .DS_Store
 .env
-.audit.log
+audit.log
 application.properties
