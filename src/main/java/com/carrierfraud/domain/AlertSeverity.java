@@ -1,6 +1,6 @@
 package com.carrierfraud.domain;
 
-public enum AlertSecurity {
+public enum AlertSeverity {
     CRITICAL,
     HIGH,
     MEDIUM,
