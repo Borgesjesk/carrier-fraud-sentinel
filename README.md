@@ -21,4 +21,3 @@ Real-time freight carrier fraud detection API built from 6 years of operational 
 ./mvnw spring-boot:run
 ```
 
-## Built at INTERHACK BCN 2026

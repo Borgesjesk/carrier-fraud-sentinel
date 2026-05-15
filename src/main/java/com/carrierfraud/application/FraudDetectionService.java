@@ -1,6 +1,6 @@
 package com.carrierfraud.application;
 
-import com.carrierfraud.domain.AlertStatus;
+import com.carrierfraud.domain.AlertAssignmentStatus;
 import com.carrierfraud.domain.RiskAlert;
 import com.carrierfraud.domain.StrategyRule;
 import com.carrierfraud.domain.Transaction;
@@ -31,7 +31,7 @@ public class FraudDetectionService {
             totalScore += rule.evaluate(transaction);
         }
         if (totalScore >= threshold) {
-            RiskAlert alert = new RiskAlert(transaction.getCarrierName(), totalScore, "Multiple rules", LocalDateTime.now(), AlertStatus.NEW);
+            RiskAlert alert = new RiskAlert(transaction.getCarrierName(), totalScore, "Multiple rules", LocalDateTime.now(), AlertAssignmentStatus.NEW);
             alertRepository.save(alert);
             for (AlertObserver observer : observers) {
                 observer.notify(alert);

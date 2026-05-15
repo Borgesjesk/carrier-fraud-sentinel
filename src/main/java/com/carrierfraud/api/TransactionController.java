@@ -7,7 +7,9 @@ import com.carrierfraud.infrastructure.RiskAlertRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.runtime.ObjectMethods;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -16,13 +18,15 @@ public class TransactionController {
     private final FraudDetectionService fraudDetectionService;
     private final RiskAlertRepository alertRepository;
 
-    public TransactionController(FraudDetectionService fraudDetectionService, RiskAlertRepository alertRepository) {
-        this.fraudDetectionService = fraudDetectionService;
-        this.alertRepository = alertRepository;
+    public TransactionController(
+            FraudDetectionService fraudDetectionService,
+            RiskAlertRepository alertRepository) {
+        this.fraudDetectionService = Objects.requireNonNull(fraudDetectionService);
+        this.alertRepository = Objects.requireNonNull(alertRepository);
     }
 
     @PostMapping("/analyze")
-    public ResponseEntity<RiskAlert> analyze(@RequestBody Transaction transaction) {
+    public ResponseEntity<RiskAlert> analyze(@Valid @RequestBody TransactionRequest request) {
         if (transaction == null) {
             return ResponseEntity.badRequest().build();
         }

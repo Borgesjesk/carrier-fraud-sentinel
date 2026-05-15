@@ -14,12 +14,12 @@ public class RiskAlert {
     private double riskScore;
     private String triggeredRule;
     private LocalDateTime alertDateTime;
-    private AlertStatus alertStatus;
+    private AlertAssignmentStatus alertStatus;
 
     public RiskAlert() {
     }
 
-    public RiskAlert(String carrierName, double riskScore, String triggeredRule, LocalDateTime alertDateTime, AlertStatus alertStatus) {
+    public RiskAlert(String carrierName, double riskScore, String triggeredRule, LocalDateTime alertDateTime, AlertAssignmentStatus alertStatus) {
         this.carrierName = carrierName;
         this.riskScore = riskScore;
         this.triggeredRule = triggeredRule;
@@ -47,7 +47,7 @@ public class RiskAlert {
         return alertDateTime;
     }
 
-    public AlertStatus getAlertStatus() {
+    public AlertAssignmentStatus getAlertStatus() {
         return alertStatus;
     }
 }
