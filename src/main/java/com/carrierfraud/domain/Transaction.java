@@ -1,6 +1,8 @@
 package com.carrierfraud.domain;
 
-public class Transaction {
+import java.util.Objects;
+
+public final class Transaction {
 
     private final String carrierName;
     private final String transportName;
@@ -8,35 +10,87 @@ public class Transaction {
     private final int succeededPayments;
     private final double offerPrice;
     private final int numberOfOffers;
-    private final String incidentExplanation;
-    private final int reviewScore;
     private final int reportedIncidents;
-    private final boolean missingData;
+    private final String incidentExplanation;
+    private final boolean missingRequiredDocuments;
 
-    public Transaction(String carrierName, String transportName, int failedPayments, int succeededPayments, double offerPrice, int numberOfOffers, String incidentExplanation, int reviewScore, int reportedIncidents, boolean missingData) {
+    public Transaction(
+            String carrierName,
+            String transportName,
+            int failedPayments,
+            int succeededPayments,
+            double offerPrice,
+            int numberOfOffers,
+            int reportedIncidents,
+            String incidentExplanation,
+            boolean missingRequiredDocuments
+    ) {
+
+        Objects.requireNonNull(carrierName, "Carrier name cannot be null");
+        if (carrierName.isBlank()) {
+            throw new IllegalArgumentException("Carrier name cannot be empty");
+        }
+        if (carrierName.length() > 50) {
+            throw new IllegalArgumentException(
+                    String.format("Carrier name too long: %d chars (max 50)", carrierName.length()));
+        }
         this.carrierName = carrierName;
-        this.transportName = transportName;
-        this.failedPayments = failedPayments;
-        this.succeededPayments = succeededPayments;
-        this.offerPrice = offerPrice;
-        this.numberOfOffers = numberOfOffers;
-        this.incidentExplanation = incidentExplanation;
-        this.reviewScore = reviewScore;
-        this.reportedIncidents = reportedIncidents;
-        this.missingData = missingData;
-    }
 
-    public Transaction() {
-        this.carrierName = null;
-        this.transportName = null;
-        this.failedPayments = 0;
-        this.succeededPayments = 0;
-        this.offerPrice = 0.0;
-        this.numberOfOffers = 0;
-        this.incidentExplanation = null;
-        this.reviewScore = 0;
-        this.reportedIncidents = 0;
-        this.missingData = false;
+        Objects.requireNonNull(transportName, "Transport name cannot be null");
+        if (transportName.isBlank()) {
+            throw new IllegalArgumentException("Transport name cannot be empty");
+        }
+        if (transportName.length() > 50) {
+            throw new IllegalArgumentException(
+                    String.format("Transport name too long: %d chars (max 50)", transportName.length()));
+        }
+        this.transportName = transportName;
+
+        if (failedPayments < 0) {
+            throw new IllegalArgumentException(
+                    String.format("Failed payments cannot be negative: %d", failedPayments));
+        }
+        this.failedPayments = failedPayments;
+
+        if (succeededPayments < 0) {
+            throw new IllegalArgumentException(
+                    String.format("Succeeded payments cannot be negative: %d", succeededPayments));
+        }
+        this.succeededPayments = succeededPayments;
+
+        if (offerPrice <= 0) {
+            throw new IllegalArgumentException(
+                    String.format("Offer price must be positive: %.2f", offerPrice));
+        }
+        this.offerPrice = offerPrice;
+
+        if (numberOfOffers < 0) {
+            throw new IllegalArgumentException(
+                    String.format("Number of offers cannot be negative: %d", numberOfOffers));
+        }
+        this.numberOfOffers = numberOfOffers;
+
+        if (reportedIncidents < 0) {
+            throw new IllegalArgumentException(
+                    String.format("Reported incidents cannot be negative: %d", reportedIncidents));
+        }
+        this.reportedIncidents = reportedIncidents;
+
+        if (incidentExplanation.isBlank()) {
+            throw new IllegalArgumentException(
+                    String.format("Incident explanation cannot be empty"));
+        }
+        if (incidentExplanation.length() < 100) {
+            throw new IllegalArgumentException(
+                    String.format("Incident explanation too short: %d chars (min 100)", incidentExplanation.length()));
+        }
+        this.incidentExplanation = incidentExplanation;
+
+        if (missingRequiredDocuments) {
+            throw new IllegalArgumentException(
+                    String.format("Missing required documents: %s", true));
+        }
+        this.missingRequiredDocuments = false;
     }
 
     public String getCarrierName() {
@@ -67,15 +121,77 @@ public class Transaction {
         return incidentExplanation;
     }
 
-    public int getReviewScore() {
-        return reviewScore;
+    public boolean isMissingRequiredDocuments() {
+        return missingRequiredDocuments;
     }
 
-    public int getReportedIncidents() {
-        return reportedIncidents;
+    public double getPaymentSuccessRate() {
+        int totalOffers = failedPayments + succeededPayments;
+        if (totalOffers == 0) {
+            return 0.0;
+        }
+        return (double) succeededPayments / totalOffers;
     }
 
-    public boolean isMissingData() {
-        return missingData;
+    public double getAveragePricePerOffer() {
+        if (numberOfOffers == 0) {
+            return 0.0;
+        }
+        return offerPrice / numberOfOffers;
+    }
+
+    public double getIncidentRatio() {
+        if (numberOfOffers == 0) {
+            return 0.0;
+        }
+        return (double) reportedIncidents / numberOfOffers;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        Transaction other = (Transaction) obj;
+        return failedPayments == other.failedPayments
+                && succeededPayments == other.succeededPayments
+                && Double.compare(offerPrice, other.offerPrice) == 0
+                && numberOfOffers == other.numberOfOffers
+                && reportedIncidents == other.reportedIncidents
+                && incidentExplanation.equals(other.incidentExplanation)
+                && missingRequiredDocuments == other.missingRequiredDocuments
+                && carrierName.equals(other.carrierName)
+                && transportName.equals(other.transportName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                carrierName,
+                transportName,
+                failedPayments,
+                succeededPayments,
+                offerPrice,
+                numberOfOffers,
+                reportedIncidents,
+                incidentExplanation,
+                missingRequiredDocuments
+        );
+    }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "Transaction{carrier=%s, transport=%s, failed=%d, succeeded=%d, price=%.2f, offer=%d, incidents=%d, explanation=%s, requiredDocuments=%s}",
+                carrierName,
+                transportName,
+                failedPayments,
+                succeededPayments,
+                offerPrice,
+                numberOfOffers,
+                reportedIncidents,
+                incidentExplanation,
+                missingRequiredDocuments
+        );
     }
 }
