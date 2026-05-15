@@ -10,9 +10,9 @@ public final class Transaction {
     private final int succeededPayments;
     private final double offerPrice;
     private final int numberOfOffers;
-    private final int reportedIncidents;
     private final String incidentExplanation;
     private final boolean missingRequiredDocuments;
+    private final int reportedIncidents;
 
     public Transaction(
             String carrierName,
@@ -21,9 +21,9 @@ public final class Transaction {
             int succeededPayments,
             double offerPrice,
             int numberOfOffers,
-            int reportedIncidents,
             String incidentExplanation,
-            boolean missingRequiredDocuments
+            boolean missingRequiredDocuments,
+            int reportedIncidents
     ) {
 
         Objects.requireNonNull(carrierName, "Carrier name cannot be null");
@@ -115,6 +115,10 @@ public final class Transaction {
 
     public int getNumberOfOffers() {
         return numberOfOffers;
+    }
+
+    public int getReportedIncidents() {
+        return reportedIncidents;
     }
 
     public String getIncidentExplanation() {
