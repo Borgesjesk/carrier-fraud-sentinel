@@ -10,8 +10,6 @@ public final class Transaction {
     private final int succeededPayments;
     private final double offerPrice;
     private final int numberOfOffers;
-    private final String incidentExplanation;
-    private final boolean missingRequiredDocuments;
     private final int reportedIncidents;
 
     public Transaction(
@@ -21,8 +19,6 @@ public final class Transaction {
             int succeededPayments,
             double offerPrice,
             int numberOfOffers,
-            String incidentExplanation,
-            boolean missingRequiredDocuments,
             int reportedIncidents
     ) {
 
@@ -76,21 +72,6 @@ public final class Transaction {
         }
         this.reportedIncidents = reportedIncidents;
 
-        if (incidentExplanation.isBlank()) {
-            throw new IllegalArgumentException(
-                    String.format("Incident explanation cannot be empty"));
-        }
-        if (incidentExplanation.length() < 100) {
-            throw new IllegalArgumentException(
-                    String.format("Incident explanation too short: %d chars (min 100)", incidentExplanation.length()));
-        }
-        this.incidentExplanation = incidentExplanation;
-
-        if (missingRequiredDocuments) {
-            throw new IllegalArgumentException(
-                    String.format("Missing required documents: %s", true));
-        }
-        this.missingRequiredDocuments = false;
     }
 
     public String getCarrierName() {
@@ -119,14 +100,6 @@ public final class Transaction {
 
     public int getReportedIncidents() {
         return reportedIncidents;
-    }
-
-    public String getIncidentExplanation() {
-        return incidentExplanation;
-    }
-
-    public boolean isMissingRequiredDocuments() {
-        return missingRequiredDocuments;
     }
 
     public double getPaymentSuccessRate() {
@@ -162,8 +135,6 @@ public final class Transaction {
                 && Double.compare(offerPrice, other.offerPrice) == 0
                 && numberOfOffers == other.numberOfOffers
                 && reportedIncidents == other.reportedIncidents
-                && incidentExplanation.equals(other.incidentExplanation)
-                && missingRequiredDocuments == other.missingRequiredDocuments
                 && carrierName.equals(other.carrierName)
                 && transportName.equals(other.transportName);
     }
@@ -177,9 +148,7 @@ public final class Transaction {
                 succeededPayments,
                 offerPrice,
                 numberOfOffers,
-                reportedIncidents,
-                incidentExplanation,
-                missingRequiredDocuments
+                reportedIncidents
         );
     }
 
@@ -193,9 +162,7 @@ public final class Transaction {
                 succeededPayments,
                 offerPrice,
                 numberOfOffers,
-                reportedIncidents,
-                incidentExplanation,
-                missingRequiredDocuments
+                reportedIncidents
         );
     }
 }
