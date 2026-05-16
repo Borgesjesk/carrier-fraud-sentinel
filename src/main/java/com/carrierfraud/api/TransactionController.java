@@ -26,7 +26,7 @@ public class TransactionController {
     }
 
     @PostMapping("/analyze")
-    public ResponseEntity<RiskAlert> analyze(@Valid @RequestBody TransactionRequest request) {
+    public ResponseEntity<RiskAlertResponse> analyze(@Valid @RequestBody TransactionRequest request) {
         if (transaction == null) {
             return ResponseEntity.badRequest().build();
         }
