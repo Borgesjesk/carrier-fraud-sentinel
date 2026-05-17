@@ -36,4 +36,4 @@ build/
 .DS_Store
 .env
 audit.log
-application.properties
+application.properties.env
