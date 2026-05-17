@@ -1,4 +1,4 @@
-package com.carrierfraud.application.rules;
+package com.carrierfraud;
 
 import com.carrierfraud.domain.Transaction;
 import org.junit.jupiter.api.BeforeEach;
