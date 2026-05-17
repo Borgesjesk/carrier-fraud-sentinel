@@ -1,0 +1,74 @@
+version: '3.9'
+
+services:
+  # ============ MONGODB DATABASE ============
+  mongodb:
+    image: mongo:7.0
+    container_name: fraudsentinel-mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: fraudadmin
+      MONGO_INITDB_ROOT_PASSWORD: fraudadmin123
+      MONGO_INITDB_DATABASE: fraudsentinel
+    ports:
+      - "27017:27017"
+    volumes:
+      # Persist data across container restarts
+      - fraudsentinel-mongodb-volume:/data/db
+    networks:
+      - fraudsentinel-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============ SPRING BOOT APPLICATION ============
+  fraudsentinel-api:
+    image: fraudsentinel:latest
+    container_name: fraudsentinel-api
+    restart: always
+    environment:
+      # Spring Boot configuration
+      SPRING_APPLICATION_NAME: fraudsentinel
+      SPRING_PROFILES_ACTIVE: production
+
+      # MongoDB connection
+      SPRING_DATA_MONGODB_URI: mongodb://fraudadmin:fraudadmin123@mongodb:27017/fraudsentinel?authSource=admin
+
+      # Fraud detection thresholds
+      FRAUD_DETECTION_THRESHOLD: 0.5
+      FRAUD_DETECTION_CRITICAL_THRESHOLD: 1.5
+      FRAUD_RULE_PAYMENT_UNPAID_RATE_THRESHOLD: 0.80
+      FRAUD_RULE_PRICE_ESCALATION_PRICE_INCREASE_THRESHOLD: 0.20
+      FRAUD_RULE_COMPLAINT_OPEN_CASES_THRESHOLD: 5
+      FRAUD_RULE_COMPLAINT_MEDIATED_CASES_WEEK_THRESHOLD: 10
+      FRAUD_RULE_COMPLAINT_CASES_MONTH_THRESHOLD: 20
+      FRAUD_RULE_COMPLAINT_ACCIDENTS_MONTH_THRESHOLD: 2
+      FRAUD_RULE_COMPLAINT_DISPUTES_UNRESOLVED_THRESHOLD: 3
+
+      # Server configuration
+      SERVER_PORT: 8081
+      SERVER_SERVLET_CONTEXT_PATH: /api
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - fraudsentinel-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/api/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+# ============ VOLUMES ============
+volumes:
+  fraudsentinel-mongodb-volume:
+    driver: local
+
+# ============ NETWORKS ============
+networks:
+  fraudsentinel-network:
+    driver: bridge
