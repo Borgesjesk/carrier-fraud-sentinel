@@ -2,81 +2,105 @@ package com.carrierfraud.api;
 
 import com.carrierfraud.domain.BusinessRuleException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
+import java.net.URI;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String BASE_TYPE = "https://fraudsentinel.carrierfraud.com/problems/";
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
-            MethodArgumentNotValidException ex
-    ) {
+    public ProblemDetail handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
-
         ex.getBindingResult().getFieldErrors().forEach(error ->
-                fieldErrors.put(error.getField(), error.getDefaultMessage())
-        );
+                fieldErrors.put(error.getField(), error.getDefaultMessage()));
 
-        ErrorResponse response = new ErrorResponse(
-                "Validation failed",
-                400,
-                fieldErrors.toString(),
-                LocalDateTime.now()
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "One or more request fields failed validation."
         );
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        problem.setType(URI.create(BASE_TYPE + "validation-failed"));
+        problem.setTitle("Validation Failed");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("errors", fieldErrors);
+        return problem;
     }
 
     @ExceptionHandler(BusinessRuleException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessRuleException(
-            BusinessRuleException ex
-    ) {
-        ErrorResponse response = new ErrorResponse(
-                "Business rule violation",
-                422,
-                ex.getMessage(),
-                LocalDateTime.now()
+    public ProblemDetail handleBusinessRuleException(BusinessRuleException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                ex.getMessage()
         );
+        problem.setType(URI.create(BASE_TYPE + "business-rule-violation"));
+        problem.setTitle("Business Rule Violation");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
 
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problem.setType(URI.create(BASE_TYPE + "invalid-argument"));
+        problem.setTitle("Invalid Argument");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthentication(AuthenticationException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED,
+                "Authentication is required to access this resource."
+        );
+        problem.setType(URI.create(BASE_TYPE + "unauthorized"));
+        problem.setTitle("Unauthorized");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                "You do not have permission to access this resource."
+        );
+        problem.setType(URI.create(BASE_TYPE + "forbidden"));
+        problem.setTitle("Forbidden");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
-        ErrorResponse response = new ErrorResponse(
-                "Internal server error",
-                500,
-                ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred",
-                LocalDateTime.now()
+    public ProblemDetail handleException(Exception ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred."
         );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        problem.setType(URI.create(BASE_TYPE + "internal-error"));
+        problem.setTitle("Internal Server Error");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
     }
 
+    /** Legacy error envelope retained for backwards compatibility with existing callers. */
     public record ErrorResponse(
             String error,
             int status,
             String message,
-            LocalDateTime timestamp
-    ) {
-    }
+            java.time.LocalDateTime timestamp
+    ) {}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

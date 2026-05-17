@@ -7,10 +7,18 @@ import jakarta.validation.constraints.*;
 public record TransactionRequest(
         @NotBlank(message = "Carrier name is required")
         @Size(min = 1, max = 50, message = "Carrier name must be 1-50 characters")
+        @Pattern(
+                regexp = "^[A-Za-z0-9 .,'&\\-]+$",
+                message = "Carrier name may only contain letters, digits, spaces and . , ' & -"
+        )
         String carrierName,
 
         @NotBlank(message = "Transport name is required")
         @Size(min = 1, max = 50, message = "Transport name must be 1-50 characters")
+        @Pattern(
+                regexp = "^[A-Za-z0-9 .,'&\\-]+$",
+                message = "Transport name may only contain letters, digits, spaces and . , ' & -"
+        )
         String transportName,
 
         @Min(value = 0, message = "Failed payments cannot be negative")
