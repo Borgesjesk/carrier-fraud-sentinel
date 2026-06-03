@@ -37,3 +37,4 @@ build/
 .env
 audit.log
 application.properties.env
+.claude/
