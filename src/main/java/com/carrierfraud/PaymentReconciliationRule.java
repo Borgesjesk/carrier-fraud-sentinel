@@ -2,23 +2,13 @@ package com.carrierfraud;
 
 import com.carrierfraud.domain.StrategyRule;
 import com.carrierfraud.domain.Transaction;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-@Component
 public class PaymentReconciliationRule implements StrategyRule {
 
-    @Value("${fraude.rule.payment.threshold.clean:0.10}")
-    private double thresholdClean;
-
-    @Value("${fraud.rule.payment.threshold.low:0:30}")
-    private double thresholdLow;
-
-    @Value("${fraud.rule.payment.threshold.medium:0.50}")
-    private double thresholdMedium;
-
-    @Value("${fraude.rule.payment.threshold.high:0.80}")
-    private double thresholdHigh;
+    private static final double THRESHOLD_CLEAN = 0.10;
+    private static final double THRESHOLD_LOW = 0.30;
+    private static final double THRESHOLD_MEDIUM = 0.50;
+    private static final double THRESHOLD_HIGH = 0.80;
 
     @Override
     public double evaluate(Transaction transaction) {
@@ -30,13 +20,13 @@ public class PaymentReconciliationRule implements StrategyRule {
 
         double unpaidRate = 1.0 - transaction.getPaymentSuccessRate();
 
-        if (unpaidRate <= thresholdLow) {
+        if (unpaidRate <= THRESHOLD_CLEAN) {
             return 0.0;
-        } else if (unpaidRate <= thresholdLow) {
+        } else if (unpaidRate <= THRESHOLD_LOW) {
             return 0.3;
-        } else if (unpaidRate <= thresholdMedium) {
+        } else if (unpaidRate <= THRESHOLD_MEDIUM) {
             return 0.6;
-        } else if (unpaidRate <= thresholdHigh) {
+        } else if (unpaidRate <= THRESHOLD_HIGH) {
             return 0.9;
         } else {
             return 1.0;

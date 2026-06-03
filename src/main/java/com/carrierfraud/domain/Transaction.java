@@ -155,7 +155,7 @@ public final class Transaction {
     @Override
     public String toString() {
         return String.format(
-                "Transaction{carrier=%s, transport=%s, failed=%d, succeeded=%d, price=%.2f, offer=%d, incidents=%d, explanation=%s, requiredDocuments=%s}",
+                "Transaction{carrier=%s, transport=%s, failed=%d, succeeded=%d, price=%.2f, offer=%d, incidents=%d}",
                 carrierName,
                 transportName,
                 failedPayments,

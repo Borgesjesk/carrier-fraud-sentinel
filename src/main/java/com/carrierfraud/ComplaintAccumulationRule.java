@@ -2,35 +2,25 @@ package com.carrierfraud;
 
 import com.carrierfraud.domain.StrategyRule;
 import com.carrierfraud.domain.Transaction;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-@Component
 public class ComplaintAccumulationRule implements StrategyRule {
 
-    @Value("${fraud.rule.complaint.threshold.clean:10}")
-    private int thresholdClean;
-
-    @Value("${fraud.rule.complaint.threshold.low:20}")
-    private int thresholdLow;
-
-    @Value("${fraud.rule.complaint.threshold.medium:30}")
-    private int thresholdMedium;
-
-    @Value("${fraud.rule.complaint.threshold.high:50}")
-    private int thresholdHigh;
+    private static final int THRESHOLD_CLEAN = 10;
+    private static final int THRESHOLD_LOW = 20;
+    private static final int THRESHOLD_MEDIUM = 30;
+    private static final int THRESHOLD_HIGH = 50;
 
     @Override
     public double evaluate(Transaction transaction) {
         int incidentCount = transaction.getReportedIncidents();
 
-        if (incidentCount <= thresholdClean) {
+        if (incidentCount <= THRESHOLD_CLEAN) {
             return 0.0;
-        } else if (incidentCount <= thresholdLow) {
+        } else if (incidentCount <= THRESHOLD_LOW) {
             return 0.3;
-        } else if (incidentCount <= thresholdMedium) {
+        } else if (incidentCount <= THRESHOLD_MEDIUM) {
             return 0.6;
-        } else if (incidentCount <= thresholdHigh) {
+        } else if (incidentCount <= THRESHOLD_HIGH) {
             return 0.9;
         } else {
             return 1.0;

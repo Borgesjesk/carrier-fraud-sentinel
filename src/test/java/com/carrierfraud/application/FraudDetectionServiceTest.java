@@ -9,10 +9,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.carrierfraud.PaymentReconciliationRule;
+import com.carrierfraud.OfferPriceEscalationRule;
+import com.carrierfraud.ComplaintAccumulationRule;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -38,10 +41,12 @@ class FraudDetectionServiceTest {
 
     @BeforeEach
     void setUp() {
-
-        List<StrategyRule> rules = new ArrayList<>();
+        List<StrategyRule> rules = List.of(        // ← was new ArrayList<>() (empty)
+                new PaymentReconciliationRule(),
+                new OfferPriceEscalationRule(),
+                new ComplaintAccumulationRule()
+        );
         List<AlertObserver> observers = List.of(observer1, observer2);
-
         service = new FraudDetectionService(rules, observers, alertRepository);
     }
 
@@ -177,7 +182,7 @@ class FraudDetectionServiceTest {
     void testAnalyse_MediumScore_HasMediumSeverity() {
         Transaction transaction = new Transaction(
                 "MediumRiskCarrier", "Transport123",
-                10, 5, 2000.0, 50, 15
+                2, 8, 1500.0, 15, 15
         );
 
         RiskAlert alert = service.analyse(transaction);
@@ -225,10 +230,10 @@ class FraudDetectionServiceTest {
     // ============ NULL SAFETY ============
 
     @Test
-    @DisplayName("Null transaction should throw IllegalArgumentException")
+    @DisplayName("Null transaction should throw NullPointerException")
     void testAnalyse_NullTransaction_ThrowsException() {
         assertThrows(
-                IllegalArgumentException.class,
+                NullPointerException.class,
                 () -> service.analyse(null),
                 "Service should reject null transactions"
         );

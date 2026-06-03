@@ -134,7 +134,7 @@ public class RiskAlert {
         return escalatedTo;
     }
 
-    private void accept(String personName) {
+    public void accept(String personName) {
         if (assignmentStatus == AlertAssignmentStatus.ACCEPTED
                 || assignmentStatus == AlertAssignmentStatus.IN_PROGRESS
                 || assignmentStatus == AlertAssignmentStatus.RESOLVED) {
@@ -179,7 +179,7 @@ public class RiskAlert {
         this.resolvedDate = LocalDateTime.now();
     }
 
-    private void escalate(Department escalateToDepartment) {
+    public void escalate(Department escalateToDepartment) {
         if (assignmentStatus == AlertAssignmentStatus.RESOLVED) {
             throw new IllegalArgumentException(
                     String.format("Cannot escalate resolved alert %s",
@@ -201,10 +201,10 @@ public class RiskAlert {
     }
 
     public long getMinutesUntilSlaDeadline() {
-        return java.time.temporal.ChronoUnit.MINUTES.between(slaDeadline, LocalDateTime.now());
+        return java.time.temporal.ChronoUnit.MINUTES.between(LocalDateTime.now(), slaDeadline);
     }
 
-    public boolean wasSlaMetr() {
+    public boolean wasSlaMet() {
         if (assignmentStatus != AlertAssignmentStatus.RESOLVED) {
             return false;
         }
@@ -215,7 +215,7 @@ public class RiskAlert {
         if (acceptedDate == null) {
             return -1;
         }
-        return java.time.temporal.ChronoUnit.MINUTES.between(acceptedDate, createdDate);
+        return java.time.temporal.ChronoUnit.MINUTES.between(createdDate, acceptedDate);
     }
 
     private LocalDateTime calculateSlaDeadLine(AlertSeverity severity) {

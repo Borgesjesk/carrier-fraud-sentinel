@@ -2,43 +2,31 @@ package com.carrierfraud;
 
 import com.carrierfraud.domain.StrategyRule;
 import com.carrierfraud.domain.Transaction;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-@Component
 public class OfferPriceEscalationRule implements StrategyRule {
 
-    @Value("${fraud.rule.price.baseline:1500.0}")
-    private double marketBaseline;
-
-    @Value("${fraud.rule.price.threshold.clean:0.10}")
-    private double thresholdClean;
-
-    @Value("${fraud.rule.price.threshold.low:0.20}")
-    private double thresholdLow;
-
-    @Value("${fraud.rule.price.threshold.medium:0.50}")
-    private double thresholdMedium;
-
-    @Value("${fraud.rule.price.threshold.high:1.00}")
-    private double thresholdHigh;
+    private static final double MARKET_BASELINE = 1500.0;
+    private static final double THRESHOLD_CLEAN = 0.10;
+    private static final double THRESHOLD_LOW = 0.20;
+    private static final double THRESHOLD_MEDIUM = 0.50;
+    private static final double THRESHOLD_HIGH = 1.00;
 
     @Override
     public double evaluate(Transaction transaction) {
         double offerPrice = transaction.getOfferPrice();
-        double deviation = (offerPrice - marketBaseline) / marketBaseline;
+        double deviation = (offerPrice - MARKET_BASELINE) / MARKET_BASELINE;
 
         if (deviation <= 0) {
             return 0.0;
         }
 
-        if (deviation <= thresholdClean) {
+        if (deviation <= THRESHOLD_CLEAN) {
             return 0.0;
-        } else if (deviation <= thresholdLow) {
+        } else if (deviation <= THRESHOLD_LOW) {
             return 0.2;
-        } else if (deviation <= thresholdMedium) {
+        } else if (deviation <= THRESHOLD_MEDIUM) {
             return 0.5;
-        } else if (deviation <= thresholdHigh) {
+        } else if (deviation <= THRESHOLD_HIGH) {
             return 0.8;
         } else {
             return 1.0;

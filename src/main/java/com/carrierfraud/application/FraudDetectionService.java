@@ -2,7 +2,6 @@ package com.carrierfraud.application;
 
 import com.carrierfraud.domain.*;
 import com.carrierfraud.infrastructure.RiskAlertRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,11 +14,8 @@ public class FraudDetectionService {
     private final List<AlertObserver> observers;
     private final RiskAlertRepository alertRepository;
 
-    @Value("${fraud.detection.threshol:0.5}")
-    private double threshold;
-
-    @Value("${fraud.detection.critical-threshold:1.5}")
-    private double criticalThreshold;
+    private static final double THRESHOLD = 0.5;
+    private static final double CRITICAL_THRESHOLD = 1.5;
 
     public FraudDetectionService(
             List<StrategyRule> rules,
@@ -49,7 +45,7 @@ public class FraudDetectionService {
             }
         }
 
-        if (totalScore < threshold) {
+        if (totalScore < THRESHOLD) {
             return null;
         }
 
@@ -79,7 +75,7 @@ public class FraudDetectionService {
     }
 
     private AlertSeverity determineSeverity(double score) {
-        if (score >= criticalThreshold) {
+        if (score >= CRITICAL_THRESHOLD) {
             return AlertSeverity.CRITICAL;
         } else if (score >= 1.0) {
             return AlertSeverity.HIGH;
@@ -93,7 +89,7 @@ public class FraudDetectionService {
     }
 
     private Department determineRountingDepartment(double score, String triggeredRules) {
-        if (score >= criticalThreshold) {
+        if (score >= CRITICAL_THRESHOLD) {
             return Department.LEGAL;
         }
 

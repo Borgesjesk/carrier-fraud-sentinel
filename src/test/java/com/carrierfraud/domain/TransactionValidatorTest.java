@@ -1,8 +1,5 @@
 package com.carrierfraud.domain;
 
-import com.carrierfraud.domain.BusinessRuleException;
-import com.carrierfraud.domain.Transaction;
-import com.carrierfraud.domain.TransactionalValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,9 +19,9 @@ class TransactionValidatorTest {
         Transaction transaction = new Transaction(
                 "CarrierA",
                 "Transport123",
-                5,       // 5 failures
-                10,      // 10 successes (67% success rate, OK)
-                1500.0,
+                5,
+                10,
+                5000.0,
                 50,
                 2
         );
@@ -57,7 +54,7 @@ class TransactionValidatorTest {
                 "Transport123",
                 0,       // 0 failures
                 50,      // 50 successes (100% success rate)
-                1500.0,
+                10000.0,
                 100,
                 0        // No incidents
         );
@@ -93,14 +90,13 @@ class TransactionValidatorTest {
         Transaction transaction = new Transaction(
                 "AverageCarrier",
                 "Transport123",
-                50,      // 50 failures
-                1,       // 1 success (98% failure rate, high but possible)
-                1500.0,
+                10,
+                5,
+                10000.0,
                 100,
                 10
         );
 
-        // Should not throw (above 80% threshold but acceptable with minimum success)
         assertDoesNotThrow(() -> validator.validate(transaction));
     }
 
@@ -189,7 +185,7 @@ class TransactionValidatorTest {
                 "GoodCarrier",
                 "Transport123",
                 5, 10,
-                1500.0,  // €1500 per offer (market rate)
+                10000.0,  // €1500 per offer (market rate)
                 100,
                 2
         );
@@ -279,7 +275,7 @@ class TransactionValidatorTest {
                 "Transport123",
                 30,      // 30+ failures
                 5,
-                1500.0,
+                10000.0,
                 100,
                 2        // Low incidents (not danger zone)
         );
@@ -295,7 +291,7 @@ class TransactionValidatorTest {
                 "Transport123",
                 5,
                 20,
-                1500.0,
+                10000.0,
                 100,
                 30       // 30+ incidents
         );

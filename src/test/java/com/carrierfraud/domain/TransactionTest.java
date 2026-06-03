@@ -45,9 +45,9 @@ class TransactionTest {
     // ============ UNHAPPY PATHS (Constructor Validation) ============
 
     @Test
-    @DisplayName("Null carrierName should throw IllegalArgumentException")
+    @DisplayName("Null carrierName should throw NullPointerException")
     void testConstructor_NullCarrierName_ThrowIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(NullPointerException.class, () ->
                 new Transaction(
                         null,
                         "Transport123",

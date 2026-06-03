@@ -1,7 +1,7 @@
 package com.carrierfraud.infrastructure.observers;
 
+import com.carrierfraud.application.AlertObserver;
 import com.carrierfraud.domain.RiskAlert;
-import com.carrierfraud.infrastructure.AlertObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -30,3 +30,4 @@ public class ConsoleAlertObserver implements AlertObserver {
         );
     }
 }
+

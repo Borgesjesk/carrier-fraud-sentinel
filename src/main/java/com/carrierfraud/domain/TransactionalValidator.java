@@ -62,7 +62,7 @@ public class TransactionalValidator {
         if (t.getReportedIncidents() > t.getNumberOfOffers()) {
             throw new BusinessRuleException(
                     String.format(
-                            "Carrier '%d' has impossible ratio: %d incidents on only %d offers. "
+                            "Carrier '%s' has impossible ratio: %d incidents on only %d offers. "
                                     + "Each offer can have at most 1 incident.",
                             t.getCarrierName(),
                             t.getReportedIncidents(),
@@ -76,6 +76,9 @@ public class TransactionalValidator {
     }
 
     private void validateOfferPriceConsistency(Transaction t) {
+        if (t.getNumberOfOffers() == 0) {
+            return; // New carrier with no offers — nothing to validate
+        }
 
         double avgPricePerOffer = t.getAveragePricePerOffer();
 
