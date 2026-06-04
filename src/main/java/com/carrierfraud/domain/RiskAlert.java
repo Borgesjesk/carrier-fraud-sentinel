@@ -31,7 +31,7 @@ public class RiskAlert {
             double riskScore,
             String triggeredRuleNames,
             AlertSeverity severity,
-            Department department
+            Department assignedDepartment
     ) {
 
         Objects.requireNonNull(alertId, "Alert ID cannot be null");
@@ -58,11 +58,11 @@ public class RiskAlert {
         this.triggeredRuleNames = triggeredRuleNames;
 
         Objects.requireNonNull(severity, "Severity cannot be null");
-        Objects.requireNonNull(department, "Department cannot be null");
+        Objects.requireNonNull(assignedDepartment, "Department cannot be null");
 
         this.createdDate = LocalDateTime.now();
         this.severity = severity;
-        this.assignedDepartment = department;
+        this.assignedDepartment = assignedDepartment;
         this.assignmentStatus = AlertAssignmentStatus.UNASSIGNED;
 
         this.assignedTo = null;

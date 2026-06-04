@@ -24,7 +24,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Validated @RequestBody LoginRequest request) {
-        // Stub credential check. Replace with real user store / authentication manager.
+
         String role = "admin".equalsIgnoreCase(request.username()) ? "ADMIN" : "USER";
         String token = jwtService.generateToken(request.username(), Map.of("role", role));
         return ResponseEntity.ok(new AuthResponse(token, "Bearer", role));

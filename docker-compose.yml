@@ -48,10 +48,10 @@ services:
       FRAUD_RULE_COMPLAINT_DISPUTES_UNRESOLVED_THRESHOLD: 3
 
       # Server configuration
-      SERVER_PORT: 8081
+      SERVER_PORT: 8080
       SERVER_SERVLET_CONTEXT_PATH: /api
     ports:
-      - "8081:8081"
+      - "8080:8080"
     depends_on:
       mongodb:
         condition: service_healthy
