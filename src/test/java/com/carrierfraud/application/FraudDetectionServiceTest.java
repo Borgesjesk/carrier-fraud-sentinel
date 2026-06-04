@@ -9,11 +9,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.carrierfraud.PaymentReconciliationRule;
-import com.carrierfraud.OfferPriceEscalationRule;
-import com.carrierfraud.ComplaintAccumulationRule;
+import com.carrierfraud.application.rules.PaymentReconciliationRule;
+import com.carrierfraud.application.rules.OfferPriceEscalationRule;
+import com.carrierfraud.application.rules.ComplaintAccumulationRule;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

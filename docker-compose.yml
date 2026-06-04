@@ -7,8 +7,8 @@ services:
     container_name: fraudsentinel-mongodb
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: fraudadmin
-      MONGO_INITDB_ROOT_PASSWORD: fraudadmin123
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-fraudadmin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-fraudadmin123}
       MONGO_INITDB_DATABASE: fraudsentinel
     ports:
       - "27017:27017"
@@ -34,18 +34,7 @@ services:
       SPRING_PROFILES_ACTIVE: production
 
       # MongoDB connection
-      SPRING_DATA_MONGODB_URI: mongodb://fraudadmin:fraudadmin123@mongodb:27017/fraudsentinel?authSource=admin
-
-      # Fraud detection thresholds
-      FRAUD_DETECTION_THRESHOLD: 0.5
-      FRAUD_DETECTION_CRITICAL_THRESHOLD: 1.5
-      FRAUD_RULE_PAYMENT_UNPAID_RATE_THRESHOLD: 0.80
-      FRAUD_RULE_PRICE_ESCALATION_PRICE_INCREASE_THRESHOLD: 0.20
-      FRAUD_RULE_COMPLAINT_OPEN_CASES_THRESHOLD: 5
-      FRAUD_RULE_COMPLAINT_MEDIATED_CASES_WEEK_THRESHOLD: 10
-      FRAUD_RULE_COMPLAINT_CASES_MONTH_THRESHOLD: 20
-      FRAUD_RULE_COMPLAINT_ACCIDENTS_MONTH_THRESHOLD: 2
-      FRAUD_RULE_COMPLAINT_DISPUTES_UNRESOLVED_THRESHOLD: 3
+      SPRING_DATA_MONGODB_URI: mongodb://${MONGO_USER:-fraudadmin}:${MONGO_PASS:-fraudadmin123}@mongodb:27017/fraudsentinel?authSource=admin
 
       # Server configuration
       SERVER_PORT: 8080

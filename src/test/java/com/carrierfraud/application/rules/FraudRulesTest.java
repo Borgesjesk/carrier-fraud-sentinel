@@ -1,8 +1,5 @@
 package com.carrierfraud.application.rules;
 
-import com.carrierfraud.ComplaintAccumulationRule;
-import com.carrierfraud.OfferPriceEscalationRule;
-import com.carrierfraud.PaymentReconciliationRule;
 import com.carrierfraud.domain.Transaction;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

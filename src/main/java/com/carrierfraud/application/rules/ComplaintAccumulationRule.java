@@ -1,8 +1,10 @@
-package com.carrierfraud;
+package com.carrierfraud.application.rules;
 
 import com.carrierfraud.domain.StrategyRule;
 import com.carrierfraud.domain.Transaction;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ComplaintAccumulationRule implements StrategyRule {
 
     private static final int THRESHOLD_CLEAN = 10;
