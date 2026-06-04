@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FraudSentinel</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.6.0/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#242836;--border:#2e3347;--text:#e4e6ef;--text2:#9399b2;--text3:#636982;--accent:#e24b4a;--accent2:#ff6b6b;--blue:#378add;--green:#22c55e;--amber:#ef9f27;--purple:#7f77dd;--info-bg:#0c2d4e;--info-text:#85b7eb;--danger-bg:#3d1515;--danger-text:#f09595;--success-bg:#0d3320;--success-text:#97c459;--warn-bg:#3d2a06;--warn-text:#fac775;--radius:8px;--font:'DM Sans',sans-serif}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+input,select,textarea,button{font-family:var(--font)}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f1117 0%,#1a1025 50%,#0f1117 100%)}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:40px 32px;width:380px}
+.login-card h1{font-size:22px;font-weight:600;text-align:center;margin-bottom:4px}
+.login-card p.sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:28px}
+.logo{width:52px;height:52px;border-radius:50%;background:var(--danger-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.logo i{font-size:26px;color:var(--accent)}
+.form-group{margin-bottom:16px}
+.form-group label{font-size:13px;color:var(--text2);display:block;margin-bottom:6px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;outline:none}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--accent)}
+.btn{padding:11px 18px;border:none;border-radius:var(--radius);font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-block{width:100%}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-sm{padding:7px 14px;font-size:13px}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{background:var(--bg3)}
+.btn-success{background:var(--success-bg);color:var(--success-text);border:none}
+.btn-success:hover{opacity:.85}
+.btn-danger{background:var(--danger-bg);color:var(--danger-text);border:none}
+.btn-danger:hover{opacity:.85}
+.btn-info{background:var(--info-bg);color:var(--info-text);border:none}
+.btn-info:hover{opacity:.85}
+.btn-warn{background:var(--warn-bg);color:var(--warn-text);border:none}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.demo-hint{margin-top:16px;padding:12px;background:var(--bg3);border-radius:var(--radius);font-size:12px;color:var(--text3)}
+.demo-hint span{color:var(--text2)}
+.error-msg{color:var(--accent);font-size:13px;margin-top:8px;display:none}
+.shell{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);padding:16px 0;display:flex;flex-direction:column}
+.sidebar .brand{padding:12px 20px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.sidebar .brand .logo-sm{width:34px;height:34px;border-radius:50%;background:var(--danger-bg);display:flex;align-items:center;justify-content:center}
+.sidebar .brand .logo-sm i{font-size:17px;color:var(--accent)}
+.sidebar .brand span{font-weight:600;font-size:15px}
+.nav-item{padding:10px 20px;font-size:13px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .1s}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg3);color:var(--text);border-left:3px solid var(--accent);padding-left:17px}
+.nav-item i{font-size:18px}
+.nav-spacer{flex:1}
+.main{flex:1;padding:24px 28px;overflow-y:auto}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.topbar h2{font-size:20px;font-weight:600}
+.topbar .user-info{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--info-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--info-text)}
+.badge{font-size:11px;padding:2px 10px;border-radius:var(--radius);font-weight:500}
+.badge-critical{background:var(--danger-bg);color:var(--danger-text)}
+.badge-high{background:var(--warn-bg);color:var(--warn-text)}
+.badge-medium{background:var(--bg3);color:var(--text2)}
+.badge-low{background:var(--info-bg);color:var(--info-text)}
+.badge-info{background:var(--info-bg);color:var(--info-text)}
+.badge-unassigned,.badge-new{background:var(--warn-bg);color:var(--warn-text)}
+.badge-accepted,.badge-assigned{background:var(--info-bg);color:var(--info-text)}
+.badge-in_progress{background:#2d1f54;color:#afa9ec}
+.badge-resolved{background:var(--success-bg);color:var(--success-text)}
+.badge-escalated{background:var(--danger-bg);color:var(--danger-text)}
+.badge-role{font-size:11px;padding:2px 8px;border-radius:var(--radius);background:var(--info-bg);color:var(--info-text)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.metric-card .label{font-size:12px;color:var(--text3);margin-bottom:4px}
+.metric-card .value{font-size:26px;font-weight:600}
+.metric-card .value.danger{color:var(--accent)}
+.metric-card .value.warn{color:var(--amber)}
+.metric-card .value.success{color:var(--green)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-header{padding:14px 20px;border-bottom:1px solid var(--border);font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.card-body{padding:20px}
+.table-row{display:grid;padding:12px 20px;font-size:13px;align-items:center;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.table-row:hover{background:var(--bg3)}
+.table-row.header{font-size:12px;color:var(--text3);cursor:default;background:none}
+.alerts-grid{grid-template-columns:80px 1fr 60px 110px 100px 90px}
+.analyze-form{max-width:560px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.result-card{margin-top:20px;padding:20px;background:var(--bg3);border-radius:var(--radius);border-left:4px solid var(--accent)}
+.result-card h3{font-size:16px;font-weight:500;margin-bottom:12px}
+.result-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px}
+.result-row .rl{color:var(--text2)}
+.detail-grid{display:grid;grid-template-columns:1fr 260px;gap:16px}
+.detail-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.detail-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.detail-title{font-size:15px;font-weight:600;word-break:break-all}
+.detail-sub{font-size:13px;color:var(--text2)}
+.sla-box{text-align:right}
+.sla-box .sla-label{font-size:12px;color:var(--text3)}
+.sla-box .sla-value{font-size:22px;font-weight:600;color:var(--amber)}
+.sla-box .sla-sub{font-size:11px;color:var(--text3)}
+.actions-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.section-title{font-size:14px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rules-box{background:var(--bg3);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px}
+.rules-box p{font-size:13px;margin-bottom:4px}
+.rules-box .score{font-size:12px;color:var(--text2)}
+.docs-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.doc-item{padding:10px 14px;background:var(--bg3);border-radius:var(--radius);display:flex;align-items:center;gap:10px}
+.doc-item i{font-size:20px}
+.doc-item .doc-name{font-size:13px;font-weight:500}
+.doc-item .doc-status{font-size:11px}
+.timeline{border-left:2px solid var(--border);padding-left:16px;margin-left:8px}
+.timeline-item{margin-bottom:18px;position:relative}
+.timeline-item .dot{width:10px;height:10px;border-radius:50%;position:absolute;left:-22px;top:3px}
+.timeline-item .t-title{font-size:13px;font-weight:500}
+.timeline-item .t-date{font-size:11px;color:var(--text3);margin-top:2px}
+.page{display:none}.page.active{display:block}
+.empty-state{text-align:center;padding:40px;color:var(--text3)}
+.loading{text-align:center;padding:20px;color:var(--text3)}
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:var(--radius);font-size:13px;z-index:999;animation:fadeIn .2s}
+.toast-success{background:var(--success-bg);color:var(--success-text);border:1px solid #1a5c35}
+.toast-error{background:var(--danger-bg);color:var(--danger-text);border:1px solid #5c1a1a}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:998}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;width:400px;max-width:90vw}
+.modal h3{font-size:16px;font-weight:500;margin-bottom:16px}
+.modal .btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+</style>
+</head>
+<body>
+<div id="loginPage" class="login-wrap">
+  <div class="login-card">
+    <div class="logo"><i class="ti ti-shield-lock"></i></div>
+    <h1>FraudSentinel</h1>
+    <p class="sub">Carrier fraud detection platform</p>
+    <div class="form-group"><label>Username</label><input type="text" id="username" value="maria.garcia"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="password" value="analyst123"></div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()"><i class="ti ti-login"></i>Sign in</button>
+    <div class="error-msg" id="loginError"></div>
+    <div class="demo-hint"><span>Demo accounts:</span><br>maria.garcia / analyst123 · carlos.silva / admin123</div>
+  </div>
+</div>
+<div id="app" class="shell" style="display:none">
+  <div class="sidebar">
+    <div class="brand"><div class="logo-sm"><i class="ti ti-shield-lock"></i></div><span>FraudSentinel</span></div>
+    <div class="nav-item active" onclick="navigate('dashboard')"><i class="ti ti-dashboard"></i>Dashboard</div>
+    <div class="nav-item" onclick="navigate('analyze')"><i class="ti ti-search"></i>Analyze carrier</div>
+    <div class="nav-item" onclick="navigate('alerts')"><i class="ti ti-alert-triangle"></i>Alerts</div>
+    <div class="nav-spacer"></div>
+    <div class="nav-item" onclick="doLogout()"><i class="ti ti-logout"></i>Sign out</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2 id="pageTitle">Dashboard</h2>
+      <div class="user-info">
+        <div class="avatar" id="userAvatar">MG</div>
+        <span id="userName" style="font-size:13px">maria.garcia</span>
+        <span class="badge-role" id="userRole">ANALYST</span>
+      </div>
+    </div>
+    <div id="dashboardPage" class="page active">
+      <div class="metrics" id="metricsGrid"></div>
+      <div class="card"><div class="card-header"><i class="ti ti-alert-triangle"></i>Recent alerts</div><div id="recentAlerts"><div class="loading">Loading alerts...</div></div></div>
+    </div>
+    <div id="analyzePage" class="page">
+      <div class="analyze-form">
+        <div class="card"><div class="card-body">
+          <p class="section-title"><i class="ti ti-radar"></i>Carrier fraud analysis</p>
+          <div class="form-group"><label>Carrier name</label><input type="text" id="aCarrier" placeholder="e.g. TransportesDemo SL"></div>
+          <div class="form-group"><label>Transport name</label><input type="text" id="aTransport" value="Transport-SCAN"></div>
+          <div class="form-row"><div class="form-group"><label>Failed payments</label><input type="number" id="aFailed" value="9" min="0"></div><div class="form-group"><label>Succeeded payments</label><input type="number" id="aSuccess" value="1" min="0"></div></div>
+          <div class="form-row"><div class="form-group"><label>Total offer price (EUR)</label><input type="number" id="aPrice" value="5000" min="0" step="100"></div><div class="form-group"><label>Number of offers</label><input type="number" id="aOffers" value="50" min="0"></div></div>
+          <div class="form-group"><label>Reported incidents</label><input type="number" id="aIncidents" value="40" min="0"></div>
+          <button class="btn btn-primary btn-block" onclick="doAnalyze()" id="analyzeBtn"><i class="ti ti-radar"></i>Run fraud analysis</button>
+        </div></div>
+        <div id="analyzeResult"></div>
+      </div>
+    </div>
+    <div id="alertsPage" class="page">
+      <div class="card"><div class="card-header"><i class="ti ti-alert-triangle"></i>All alerts</div><div id="allAlerts"><div class="loading">Loading...</div></div></div>
+    </div>
+    <div id="detailPage" class="page"><div id="alertDetail"></div></div>
+  </div>
+</div>
+<div id="modalContainer"></div>
+<script>
+const API=window.location.origin;
+let token=null,currentUser=null,alertsCache=[];
+
+function toast(msg,type='success'){const t=document.createElement('div');t.className='toast toast-'+type;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000)}
+
+async function api(path,opts={}){
+  const h={'Content-Type':'application/json',...opts.headers};
+  if(token)h['Authorization']='Bearer '+token;
+  const r=await fetch(API+path,{...opts,headers:h});
+  if(!r.ok){const e=await r.json().catch(()=>({detail:'Request failed'}));throw new Error(e.detail||e.message||'Error')}
+  if(r.status===204)return null;
+  return r.json();
+}
+
+async function doLogin(){
+  const u=document.getElementById('username').value,p=document.getElementById('password').value,err=document.getElementById('loginError');
+  try{err.style.display='none';const d=await api('/api/v1/auth/login',{method:'POST',body:JSON.stringify({username:u,password:p})});
+  token=d.accessToken;currentUser={name:u,role:d.role||'USER'};sessionStorage.setItem('token',token);sessionStorage.setItem('user',JSON.stringify(currentUser));showApp()}
+  catch(e){err.textContent=e.message;err.style.display='block'}}
+
+function doLogout(){token=null;currentUser=null;sessionStorage.clear();document.getElementById('app').style.display='none';document.getElementById('loginPage').style.display='flex'}
+
+function showApp(){document.getElementById('loginPage').style.display='none';document.getElementById('app').style.display='flex';
+  const ini=currentUser.name.split('.').map(s=>s[0].toUpperCase()).join('');
+  document.getElementById('userAvatar').textContent=ini;document.getElementById('userName').textContent=currentUser.name;document.getElementById('userRole').textContent=currentUser.role;navigate('dashboard')}
+
+function navigate(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const t={dashboard:'Dashboard',analyze:'Analyze carrier',alerts:'Alerts',detail:'Alert detail'};
+  document.getElementById('pageTitle').textContent=t[page]||'Dashboard';
+  document.getElementById(page+'Page').classList.add('active');
+  const navItems=document.querySelectorAll('.nav-item'),nm={dashboard:0,analyze:1,alerts:2};
+  if(nm[page]!==undefined)navItems[nm[page]].classList.add('active');
+  if(page==='dashboard')loadDashboard();if(page==='alerts')loadAlerts()}
+
+async function loadDashboard(){
+  try{const alerts=await api('/api/v1/transactions/alerts');alertsCache=alerts||[];
+  const total=alertsCache.length,critical=alertsCache.filter(a=>a.severity==='CRITICAL').length,
+  unassigned=alertsCache.filter(a=>(a.assignmentStatus||a.status)==='UNASSIGNED').length,
+  resolved=alertsCache.filter(a=>(a.assignmentStatus||a.status)==='RESOLVED').length;
+  document.getElementById('metricsGrid').innerHTML=`
+    <div class="metric-card"><div class="label">Total alerts</div><div class="value">${total}</div></div>
+    <div class="metric-card"><div class="label">Critical</div><div class="value danger">${critical}</div></div>
+    <div class="metric-card"><div class="label">Unassigned</div><div class="value warn">${unassigned}</div></div>
+    <div class="metric-card"><div class="label">Resolved</div><div class="value success">${resolved}</div></div>`;
+  renderAlertTable('recentAlerts',alertsCache.slice(0,10))}
+  catch(e){document.getElementById('recentAlerts').innerHTML='<div class="empty-state">'+e.message+'</div>'}}
+
+async function loadAlerts(){try{const a=await api('/api/v1/transactions/alerts');alertsCache=a||[];renderAlertTable('allAlerts',alertsCache)}catch(e){document.getElementById('allAlerts').innerHTML='<div class="empty-state">'+e.message+'</div>'}}
+
+function renderAlertTable(cid,alerts){
+  if(!alerts||!alerts.length){document.getElementById(cid).innerHTML='<div class="empty-state">No alerts yet. Analyze a carrier to generate alerts.</div>';return}
+  let h='<div class="table-row header alerts-grid"><span>Severity</span><span>Carrier</span><span>Score</span><span>Routed to</span><span>Status</span><span>Created</span></div>';
+  alerts.forEach((a,i)=>{const sev=(a.severity||'INFO').toLowerCase(),status=(a.assignmentStatus||a.status||'UNASSIGNED'),dept=a.assignedDepartment||'N/A',
+  date=a.createdDate?new Date(a.createdDate).toLocaleDateString('es-ES',{day:'2-digit',month:'short'}):'';
+  h+=`<div class="table-row alerts-grid" onclick="showDetail(${i})"><span><span class="badge badge-${sev}">${(a.severity||'').toUpperCase()}</span></span><span style="font-weight:500">${a.carrierName||''}</span><span>${typeof a.riskScore==='number'?a.riskScore.toFixed(1):''}</span><span style="font-size:12px;color:var(--text2)">${dept}</span><span><span class="badge badge-${status.toLowerCase()}">${status}</span></span><span style="font-size:12px;color:var(--text3)">${date}</span></div>`});
+  document.getElementById(cid).innerHTML=h}
+
+function showDetail(idx){
+  const a=alertsCache[idx];if(!a)return;
+  const sev=(a.severity||'INFO').toLowerCase(),status=(a.assignmentStatus||a.status||'UNASSIGNED'),
+  rules=a.triggeredRules||a.triggeredRuleNames||'',dept=a.assignedDepartment||'',
+  isMediation=dept==='MEDIATION'||dept==='PAYMENT_RECONCILIATION',
+  alertId=a.alertId||'',
+  isUnassigned=status==='UNASSIGNED',isAccepted=status==='ACCEPTED',isInProgress=status==='IN_PROGRESS',isResolved=status==='RESOLVED';
+
+  let actionsHtml='';
+  if(isUnassigned)actionsHtml=`<button class="btn btn-sm btn-success" onclick="doAccept('${alertId}')"><i class="ti ti-check"></i>Accept case</button><button class="btn btn-sm btn-danger" onclick="doEscalate('${alertId}')"><i class="ti ti-arrow-up"></i>Escalate</button>`;
+  else if(isAccepted)actionsHtml=`<button class="btn btn-sm btn-info" onclick="doInvestigate('${alertId}')"><i class="ti ti-search"></i>Start investigation</button><button class="btn btn-sm btn-danger" onclick="doEscalate('${alertId}')"><i class="ti ti-arrow-up"></i>Escalate</button>`;
+  else if(isInProgress)actionsHtml=`<button class="btn btn-sm btn-success" onclick="showResolveModal('${alertId}')"><i class="ti ti-check"></i>Resolve case</button><button class="btn btn-sm btn-danger" onclick="doEscalate('${alertId}')"><i class="ti ti-arrow-up"></i>Escalate</button>`;
+  else if(isResolved)actionsHtml=`<span style="font-size:13px;color:var(--green)"><i class="ti ti-circle-check" style="vertical-align:-2px;margin-right:4px"></i>Case resolved</span>`;
+
+  let timelineHtml=`<div class="timeline-item"><div class="dot" style="background:var(--accent)"></div><div class="t-title">Alert created</div><div class="t-date">${a.createdDate?new Date(a.createdDate).toLocaleString('es-ES'):''}</div></div>`;
+  timelineHtml+=`<div class="timeline-item"><div class="dot" style="background:var(--blue)"></div><div class="t-title">Auto-routed to ${dept}</div><div class="t-date">${a.createdDate?new Date(a.createdDate).toLocaleString('es-ES'):''}</div></div>`;
+  if(a.acceptedBy||!isUnassigned&&!isResolved)timelineHtml+=`<div class="timeline-item"><div class="dot" style="background:var(--green)"></div><div class="t-title">Accepted by ${a.acceptedBy||currentUser.name}</div><div class="t-date">${a.acceptedDate?new Date(a.acceptedDate).toLocaleString('es-ES'):'—'}</div></div>`;
+  if(isInProgress||isResolved)timelineHtml+=`<div class="timeline-item"><div class="dot" style="background:var(--purple)"></div><div class="t-title">Investigation started</div><div class="t-date">—</div></div>`;
+  if(isResolved)timelineHtml+=`<div class="timeline-item"><div class="dot" style="background:var(--green)"></div><div class="t-title">Resolved</div><div class="t-date">${a.resolvedDate?new Date(a.resolvedDate).toLocaleString('es-ES'):'—'}</div></div>`;
+  if(!isResolved)timelineHtml+=`<div class="timeline-item"><div class="dot" style="background:var(--border);border:2px solid var(--text3)"></div><div class="t-title" style="color:var(--text3)">Awaiting next action...</div></div>`;
+
+  let docsHtml='';
+  if(isMediation)docsHtml=`<p class="section-title"><i class="ti ti-file-text"></i>Claim documents</p>
+    <div class="docs-grid">
+      <div class="doc-item"><i class="ti ti-file-check" style="color:var(--green)"></i><div><div class="doc-name">CMR</div><div class="doc-status" style="color:var(--green)">Required</div></div></div>
+      <div class="doc-item"><i class="ti ti-file-check" style="color:var(--green)"></i><div><div class="doc-name">Albaran</div><div class="doc-status" style="color:var(--green)">Required</div></div></div>
+      <div class="doc-item"><i class="ti ti-file-check" style="color:var(--green)"></i><div><div class="doc-name">Communication proof</div><div class="doc-status" style="color:var(--green)">Required</div></div></div>
+      <div class="doc-item"><i class="ti ti-file-x" style="color:var(--accent)"></i><div><div class="doc-name">COFACE guarantee</div><div class="doc-status" style="color:var(--accent)">Check status</div></div></div>
+    </div>`;
+
+  document.getElementById('alertDetail').innerHTML=`
+    <button class="btn btn-outline btn-sm" onclick="navigate('alerts')" style="margin-bottom:16px"><i class="ti ti-arrow-left"></i>Back to alerts</button>
+    <div class="detail-grid">
+      <div>
+        <div class="card" style="margin-bottom:16px"><div class="card-body">
+          <div class="detail-header">
+            <div>
+              <div class="detail-badges"><span class="badge badge-${sev}">${(a.severity||'').toUpperCase()}</span><span class="badge badge-info">${dept}</span><span class="badge badge-${status.toLowerCase()}">${status}</span></div>
+              <div class="detail-title">${alertId}</div>
+              <div class="detail-sub">${a.carrierName||''}</div>
+            </div>
+            <div class="sla-box"><div class="sla-label">Risk score</div><div class="sla-value">${typeof a.riskScore==='number'?a.riskScore.toFixed(1):''}</div><div class="sla-sub">${sev.toUpperCase()} severity</div></div>
+          </div>
+          <div class="actions-bar">${actionsHtml}</div>
+          <p class="section-title"><i class="ti ti-radar"></i>Triggered rules</p>
+          <div class="rules-box"><p>${rules}</p><div class="score">Total score: ${typeof a.riskScore==='number'?a.riskScore.toFixed(1):''}</div></div>
+          ${docsHtml}
+          ${a.resolutionNotes?`<p class="section-title"><i class="ti ti-notes"></i>Resolution notes</p><div class="rules-box"><p>${a.resolutionNotes}</p></div>`:''} 
+        </div></div>
+      </div>
+      <div>
+        <div class="card"><div class="card-body">
+          <p class="section-title"><i class="ti ti-clock"></i>Case timeline</p>
+          <div class="timeline">${timelineHtml}</div>
+        </div></div>
+      </div>
+    </div>`;
+  navigate('detail')}
+
+async function doAccept(alertId){
+  try{const d=await api('/api/v1/transactions/alerts/'+alertId+'/accept',{method:'PUT',body:JSON.stringify({person:currentUser.name})});
+  toast('Case accepted by '+currentUser.name);await refreshAndShowDetail(alertId)}catch(e){toast(e.message,'error')}}
+
+async function doInvestigate(alertId){
+  try{await api('/api/v1/transactions/alerts/'+alertId+'/investigate',{method:'PUT'});
+  toast('Investigation started');await refreshAndShowDetail(alertId)}catch(e){toast(e.message,'error')}}
+
+async function doEscalate(alertId){
+  try{await api('/api/v1/transactions/alerts/'+alertId+'/escalate',{method:'PUT',body:JSON.stringify({department:'LEGAL'})});
+  toast('Escalated to LEGAL');await refreshAndShowDetail(alertId)}catch(e){toast(e.message,'error')}}
+
+function showResolveModal(alertId){
+  document.getElementById('modalContainer').innerHTML=`
+    <div class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <h3><i class="ti ti-check" style="color:var(--green);margin-right:6px"></i>Resolve case</h3>
+        <div class="form-group"><label>Resolution notes</label><textarea id="resolveNotes" rows="4" placeholder="Describe the resolution and findings..."></textarea></div>
+        <div class="btn-row"><button class="btn btn-sm btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-sm btn-success" onclick="doResolve('${alertId}')"><i class="ti ti-check"></i>Resolve</button></div>
+      </div>
+    </div>`}
+
+function closeModal(e){if(!e||e.target.classList.contains('modal-overlay'))document.getElementById('modalContainer').innerHTML=''}
+
+async function doResolve(alertId){
+  const notes=document.getElementById('resolveNotes').value;
+  if(!notes.trim()){toast('Resolution notes required','error');return}
+  try{await api('/api/v1/transactions/alerts/'+alertId+'/resolve',{method:'PUT',body:JSON.stringify({notes:notes})});
+  closeModal();toast('Case resolved successfully');await refreshAndShowDetail(alertId)}catch(e){toast(e.message,'error')}}
+
+async function refreshAndShowDetail(alertId){
+  const alerts=await api('/api/v1/transactions/alerts');alertsCache=alerts||[];
+  const idx=alertsCache.findIndex(a=>a.alertId===alertId);if(idx>=0)showDetail(idx)}
+
+async function doAnalyze(){
+  const btn=document.getElementById('analyzeBtn'),rd=document.getElementById('analyzeResult');btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i>Analyzing...';
+  try{const d=await api('/api/v1/transactions/analyze',{method:'POST',body:JSON.stringify({
+    carrierName:document.getElementById('aCarrier').value||'UnknownCarrier',transportName:document.getElementById('aTransport').value||'T1',
+    failedPayments:parseInt(document.getElementById('aFailed').value)||0,succeededPayments:parseInt(document.getElementById('aSuccess').value)||0,
+    offerPrice:parseFloat(document.getElementById('aPrice').value)||1500,numberOfOffers:parseInt(document.getElementById('aOffers').value)||50,
+    reportedIncidents:parseInt(document.getElementById('aIncidents').value)||0})});
+  if(!d){rd.innerHTML='<div class="result-card" style="border-left-color:var(--green)"><h3 style="color:var(--green)"><i class="ti ti-circle-check" style="margin-right:6px"></i>Clean carrier</h3><p style="font-size:13px;color:var(--text2)">No fraud signals detected. Score below threshold.</p></div>';return}
+  const sev=(d.severity||'INFO').toLowerCase();
+  rd.innerHTML=`<div class="result-card" style="border-left-color:${sev==='critical'?'var(--accent)':sev==='high'?'var(--amber)':'var(--blue)'}">
+    <h3><span class="badge badge-${sev}" style="margin-right:8px">${(d.severity||'').toUpperCase()}</span>Fraud detected</h3>
+    <div class="result-row"><span class="rl">Alert ID</span><span style="font-size:12px;word-break:break-all">${d.alertId||''}</span></div>
+    <div class="result-row"><span class="rl">Carrier</span><span>${d.carrierName||''}</span></div>
+    <div class="result-row"><span class="rl">Risk score</span><span style="font-weight:500">${typeof d.riskScore==='number'?d.riskScore.toFixed(1):''}</span></div>
+    <div class="result-row"><span class="rl">Triggered rules</span><span>${d.triggeredRules||d.triggeredRuleNames||''}</span></div>
+    <div class="result-row"><span class="rl">Routed to</span><span style="font-weight:500">${d.assignedDepartment||''}</span></div>
+    <div class="result-row"><span class="rl">Status</span><span>${d.assignmentStatus||d.status||''}</span></div>
+  </div>`}catch(e){rd.innerHTML=`<div class="result-card"><h3 style="color:var(--accent)">Analysis failed</h3><p style="font-size:13px;color:var(--text2)">${e.message}</p></div>`}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-radar"></i>Run fraud analysis'}
+
+window.onload=function(){const st=sessionStorage.getItem('token'),su=sessionStorage.getItem('user');if(st&&su){token=st;currentUser=JSON.parse(su);showApp()}}
+</script>
+</body>
+</html>

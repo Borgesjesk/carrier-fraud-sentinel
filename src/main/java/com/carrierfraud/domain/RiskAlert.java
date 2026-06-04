@@ -1,12 +1,16 @@
 package com.carrierfraud.domain;
 
+import org.springframework.data.annotation.Id;
+
 import java.util.Objects;
 import java.time.LocalDateTime;
 
 
 public class RiskAlert {
 
+    @Id
     private final String alertId;
+
     private final String carrierName;
     private final double riskScore;
     private final String triggeredRuleNames;

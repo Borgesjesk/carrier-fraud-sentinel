@@ -7,9 +7,12 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RiskAlertRepository extends MongoRepository<RiskAlert, String> {
+
+    Optional<RiskAlert> findByAlertId(String alertId);
 
     List<RiskAlert> findByCarrierName(String carrierName);
 

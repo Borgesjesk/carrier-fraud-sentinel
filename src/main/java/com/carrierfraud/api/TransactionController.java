@@ -68,4 +68,78 @@ public class TransactionController {
 
         return ResponseEntity.ok(responses);
     }
+
+    @PutMapping("/alerts/{alertId}/accept")
+    public ResponseEntity<RiskAlertResponse> acceptAlert(
+            @PathVariable String alertId,
+            @RequestBody java.util.Map<String, String> body) {
+
+        RiskAlert alert = alertRepository.findByAlertId(alertId)
+                .orElseThrow(() -> new com.carrierfraud.domain.BusinessRuleException(
+                        "Alert not found: " + alertId));
+
+        String person = body.getOrDefault("person", "unknown");
+        alert.accept(person);
+        alertRepository.save(alert);
+
+        auditService.record("ACCEPT_ALERT", "RiskAlert", alertId,
+                "Accepted by " + person);
+
+        return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(alert));
+    }
+
+    @PutMapping("/alerts/{alertId}/investigate")
+    public ResponseEntity<RiskAlertResponse> investigateAlert(
+            @PathVariable String alertId) {
+
+        RiskAlert alert = alertRepository.findByAlertId(alertId)
+                .orElseThrow(() -> new com.carrierfraud.domain.BusinessRuleException(
+                        "Alert not found: " + alertId));
+
+        alert.startInvestigation();
+        alertRepository.save(alert);
+
+        auditService.record("START_INVESTIGATION", "RiskAlert", alertId,
+                "Investigation started");
+
+        return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(alert));
+    }
+
+    @PutMapping("/alerts/{alertId}/resolve")
+    public ResponseEntity<RiskAlertResponse> resolveAlert(
+            @PathVariable String alertId,
+            @RequestBody java.util.Map<String, String> body) {
+
+        RiskAlert alert = alertRepository.findByAlertId(alertId)
+                .orElseThrow(() -> new com.carrierfraud.domain.BusinessRuleException(
+                        "Alert not found: " + alertId));
+
+        String notes = body.getOrDefault("notes", "Resolved via dashboard");
+        alert.resolve(notes);
+        alertRepository.save(alert);
+
+        auditService.record("RESOLVE_ALERT", "RiskAlert", alertId,
+                "Resolved: " + notes);
+
+        return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(alert));
+    }
+
+    @PutMapping("/alerts/{alertId}/escalate")
+    public ResponseEntity<RiskAlertResponse> escalateAlert(
+            @PathVariable String alertId,
+            @RequestBody java.util.Map<String, String> body) {
+
+        RiskAlert alert = alertRepository.findByAlertId(alertId)
+                .orElseThrow(() -> new com.carrierfraud.domain.BusinessRuleException(
+                        "Alert not found: " + alertId));
+
+        String dept = body.getOrDefault("department", "LEGAL");
+        alert.escalate(com.carrierfraud.domain.Department.valueOf(dept));
+        alertRepository.save(alert);
+
+        auditService.record("ESCALATE_ALERT", "RiskAlert", alertId,
+                "Escalated to " + dept);
+
+        return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(alert));
+    }
 }
