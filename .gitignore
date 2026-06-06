@@ -1,7 +1,11 @@
+### Build output ###
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 .kotlin
 
 ### IntelliJ IDEA ###
@@ -25,16 +29,59 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
 ### VS Code ###
 .vscode/
 
-### Mac OS ###
+### OS files ###
 .DS_Store
-.env
-audit.log
-application.properties.env
+Thumbs.db
+Desktop.ini
+
+### AI workspaces ###
 .claude/
+
+### Secrets — env file variants ###
+.env
+.env.local
+.env.development
+.env.production
+*.env
+application.properties.env
+
+### Cryptographic keys & certificates ###
+*.pem
+*.key
+*.p12
+*.jks
+*.crt
+*.cer
+*.pfx
+
+### Profile-specific Spring configs that may contain secrets ###
+application-prod.properties
+application-prod.yml
+application-secrets.properties
+
+### Java heap dumps (may contain credentials in memory) ###
+*.hprof
+*.jfr
+hs_err_pid*.log
+
+### Logs ###
+*.log
+logs/
+log/
+
+### Database dumps ###
+*.sql
+*.sql.gz
+mongodump/
+dump/
+
+### Backup files ###
+*.bak
+*~
+*.swp
+*.swo
+*.orig
