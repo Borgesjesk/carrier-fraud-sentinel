@@ -1,8 +1,10 @@
 package com.carrierfraud.api;
 
 import com.carrierfraud.domain.BusinessRuleException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -96,7 +98,16 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
-    /** Legacy error envelope retained for backwards compatibility with existing callers. */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ProblemDetail> handleAuthentication(AuthenticationException ex, HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
+        problem.setType(URI.create("https://fraud-sentinel.io/errors/invalid-credentials"));
+        problem.setTitle("Invalid credentials");
+        problem.setDetail("Username or password is incorrect.");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
     public record ErrorResponse(
             String error,
             int status,
