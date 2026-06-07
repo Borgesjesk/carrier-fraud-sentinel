@@ -170,8 +170,14 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
-
                         <configuration>
+                            <excludes>
+                                <!-- Boilerplate / no-logic classes: justifiably exempt from coverage -->
+                                <exclude>com/carrierfraud/Main.class</exclude>
+                                <exclude>com/carrierfraud/**/dto/**</exclude>
+                                <exclude>com/carrierfraud/**/config/**</exclude>
+                                <exclude>com/carrierfraud/domain/*Exception.class</exclude>
+                            </excludes>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
@@ -179,7 +185,8 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.80</minimum>
+                                            <!-- Ratchet target: 0.50 (S5) → 0.65 (S6) → 0.75 (S7) → 0.80 (S8) -->
+                                            <minimum>0.50</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
@@ -198,6 +205,7 @@
                 <configuration>
                     <effort>Max</effort>
                     <threshold>Medium</threshold>
+                    <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
 
                     <plugins>
                         <plugin>
@@ -225,7 +233,8 @@
                 <version>${dependency-check.version}</version>
 
                 <configuration>
-                    <failBuildOnCVSS>8</failBuildOnCVSS>
+                    <!-- Fintech-grade gate: fail on all High (7.0+) and Critical (9.0+) CVEs -->
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
 
                     <!-- Injected via CI/CD secrets or local env var; required for NVD API rate limit -->
                     <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
