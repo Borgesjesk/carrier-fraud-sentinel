@@ -9,7 +9,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.13</version>
+        <version>3.5.14</version>
         <relativePath/>
     </parent>
 
@@ -238,6 +238,9 @@
 
                     <!-- Injected via CI/CD secrets or local env var; required for NVD API rate limit -->
                     <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+
+                    <!-- Documented suppression for hibernate-validator false positive (CVE-2025-15104) -->
+                    <suppressionFile>dependency-check-suppressions.xml</suppressionFile>
 
                     <formats>
                         <format>HTML</format>

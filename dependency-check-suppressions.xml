@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2025-15104 affects Nu Html Checker (validator.nu),
+            not Hibernate Validator. Dependency-Check matches incorrectly on the
+            generic 'validator:validator' CPE name. Verified by reading CVE
+            description: refers to validator.nu/vnu, not org.hibernate.validator.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.hibernate\.validator/hibernate-validator@.*$</packageUrl>
+        <cpe>cpe:/a:validator:validator</cpe>
+    </suppress>
+
+</suppressions>
