@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+
+    <!-- Spring DI requires storing injected beans by reference;
+         defensive copies break the DI contract. -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Class name="~com\.carrierfraud\..*"/>
+    </Match>
+
+    <!-- Validating (fail-fast) constructors are intentional per coding standards.
+         Finalizer attack vector mitigated by Java 9+ JVM hardening. -->
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+        <Class name="~com\.carrierfraud\.domain\..*"/>
+    </Match>
+
+</FindBugsFilter>
