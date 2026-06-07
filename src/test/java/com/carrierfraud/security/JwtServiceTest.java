@@ -1,7 +1,7 @@
 package com.carrierfraud.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MissingClaimException;
+import io.jsonwebtoken.IncorrectClaimException;
 import io.jsonwebtoken.security.SignatureException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +94,7 @@ class JwtServiceTest {
     void parseAllClaims_throwsOnExpiredToken() {
         JwtService shortLivedService = new JwtService();
         ReflectionTestUtils.setField(shortLivedService, "secret", VALID_SECRET);
-        ReflectionTestUtils.setField(shortLivedService, "expirationMs", -1L);
+        ReflectionTestUtils.setField(shortLivedService, "expirationMs", -120_000L);  // ← 2 min in past, past skew
         shortLivedService.init();
 
         String expired = shortLivedService.generateToken(USERNAME);
@@ -130,7 +130,7 @@ class JwtServiceTest {
                 .compact();
 
         assertThatThrownBy(() -> jwtService.extractUsername(rogueToken))
-                .isInstanceOf(MissingClaimException.class);
+                .isInstanceOf(IncorrectClaimException.class);
     }
 
     @Test

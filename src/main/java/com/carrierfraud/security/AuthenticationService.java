@@ -18,7 +18,7 @@ import java.util.Map;
 public class AuthenticationService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
-    private static final String TOKEN_TYPE = "Bearer ";
+    private static final String TOKEN_TYPE = "Bearer";
     private static final String ROLE_CLAIM = "role";
 
     private final AuthenticationManager authenticationManager;
@@ -57,7 +57,7 @@ public class AuthenticationService {
 
     private User loadAuthenticatedUser(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Authenticated user missing from repository"));
+                .orElseThrow(() -> new IllegalStateException("Authenticated user missing from repository"));
 
     }
 }

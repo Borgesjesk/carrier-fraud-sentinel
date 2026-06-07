@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -31,8 +30,9 @@ class AuthControllerTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private AuthenticationService authenticationService;
+    @MockitoBean private AuthenticationService authenticationService;
+    @MockitoBean private JwtService jwtService;
+    @MockitoBean private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
     void login_returns200AndTokenOnValidCredentials() throws Exception {
