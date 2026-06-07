@@ -2,106 +2,125 @@ package com.carrierfraud.api;
 
 import com.carrierfraud.domain.BusinessRuleException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     private static final String BASE_TYPE = "https://fraudsentinel.carrierfraud.com/problems/";
+    private static final String PROP_TIMESTAMP = "timestamp";
+    private static final String PROP_TRACKING_ID = "trackingId";
+    private static final String PROP_ERRORS = "errors";
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        Map<String, String> fieldErrors = new HashMap<>();
+    public ProblemDetail handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request
+    ) {
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
-                fieldErrors.put(error.getField(), error.getDefaultMessage()));
-
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.BAD_REQUEST,
-                "One or more request fields failed validation."
+                fieldErrors.put(error.getField(), error.getDefaultMessage())
         );
-        problem.setType(URI.create(BASE_TYPE + "validation-failed"));
-        problem.setTitle("Validation Failed");
-        problem.setProperty("timestamp", Instant.now());
-        problem.setProperty("errors", fieldErrors);
-        return problem;
+
+        log.warn("Validation failed for {}: {}", request.getRequestURI(), fieldErrors);
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setDetail("One or more request fields failed validation.");
+        return populateProblem(problem, "validation-failed", "Validation Failed", request, Map.of(PROP_ERRORS, fieldErrors));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
-    public ProblemDetail handleBusinessRuleException(BusinessRuleException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.UNPROCESSABLE_ENTITY,
-                ex.getMessage()
-        );
-        problem.setType(URI.create(BASE_TYPE + "business-rule-violation"));
-        problem.setTitle("Business Rule Violation");
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+    public ProblemDetail handleBusinessRuleException(BusinessRuleException ex, HttpServletRequest request) {
+        log.warn("Business rule violation at [{}]: {}", request.getRequestURI(), sanitizeForLog(ex.getMessage()));
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        problem.setDetail(ex.getMessage());
+        return populateProblem(problem, "business-rule-violation", "Business Rule Violation", request, Map.of());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.BAD_REQUEST,
-                ex.getMessage()
-        );
-        problem.setType(URI.create(BASE_TYPE + "invalid-argument"));
-        problem.setTitle("Invalid Argument");
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        log.warn("Invalid argument at [{}]: {}", request.getRequestURI(), sanitizeForLog(ex.getMessage()));
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setDetail("Invalid request parameters.");
+        return populateProblem(problem, "invalid-argument", "Invalid Argument", request, Map.of());
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ProblemDetail handleAuthentication(AuthenticationException ex, HttpServletRequest request) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.UNAUTHORIZED,
-                "Authentication is required to access this resource."
-        );
-        problem.setType(URI.create(BASE_TYPE + "unauthorized"));
-        problem.setTitle("Unauthorized");
-        problem.setInstance(URI.create(request.getRequestURI()));   // ← RFC 7807 instance
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        log.warn("Authentication failed at [{}] from [{}]: {}",
+                request.getRequestURI(),
+                request.getRemoteAddr(),
+                ex.getClass().getSimpleName());
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
+        problem.setDetail("Authentication is required to access this resource.");
+        return populateProblem(problem, "unauthorized", "Unauthorized", request, Map.of());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.FORBIDDEN,
-                "You do not have permission to access this resource."
-        );
-        problem.setType(URI.create(BASE_TYPE + "forbidden"));
-        problem.setTitle("Forbidden");
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+    public ProblemDetail handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String principal = (auth != null && auth.getName() != null) ? auth.getName() : "anonymous";
+
+        log.warn("Access denied at [{}] for user [{}] from [{}]: {}",
+                request.getRequestURI(),
+                principal,
+                request.getRemoteAddr(),
+                sanitizeForLog(ex.getMessage()));
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
+        problem.setDetail("You do not have permission to access this resource.");
+        return populateProblem(problem, "forbidden", "Forbidden", request, Map.of());
     }
 
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleException(Exception ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred."
-        );
-        problem.setType(URI.create(BASE_TYPE + "internal-error"));
-        problem.setTitle("Internal Server Error");
-        problem.setProperty("timestamp", Instant.now());
+    public ProblemDetail handleException(Exception ex, HttpServletRequest request) {
+        String trackingId = UUID.randomUUID().toString();
+        log.error("Internal Server Error. trackingId={}, path={}", trackingId, request.getRequestURI(), ex);
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        problem.setDetail("An unexpected internal error occurred. Please contact support with the tracking reference.");
+        return populateProblem(problem, "internal-error", "Internal Server Error", request, Map.of(PROP_TRACKING_ID, trackingId));
+    }
+
+    private ProblemDetail populateProblem(
+            ProblemDetail problem,
+            String subType,
+            String title,
+            HttpServletRequest request,
+            Map<String, Object> extensions
+    ) {
+        problem.setType(URI.create(BASE_TYPE + subType));
+        problem.setTitle(title);
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty(PROP_TIMESTAMP, Instant.now());
+        extensions.forEach(problem::setProperty);
         return problem;
     }
 
-    public record ErrorResponse(
-            String error,
-            int status,
-            String message,
-            java.time.LocalDateTime timestamp
-    ) {}
+    /** Strips CRLF from untrusted input to prevent CWE-117 log forging. */
+    private String sanitizeForLog(String input) {
+        if (input == null) return "null";
+        return input.replaceAll("[\n\r\t]", "_");
+    }
 }
