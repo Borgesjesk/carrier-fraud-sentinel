@@ -36,6 +36,12 @@
         <enforcer.version>3.5.0</enforcer.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Security overrides: Spring Boot 3.5.14 ships with older Tomcat/Log4j
+     versions that have unpatched CVEs (disclosed after Spring Boot release).
+     These overrides pull in patched versions while maintaining BOM compatibility. -->
+        <tomcat.version>10.1.55</tomcat.version>
+        <log4j2.version>2.25.4</log4j2.version>
     </properties>
 
     <dependencyManagement>
