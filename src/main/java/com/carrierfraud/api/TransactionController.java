@@ -2,15 +2,21 @@ package com.carrierfraud.api;
 
 import com.carrierfraud.application.FraudDetectionService;
 import com.carrierfraud.audit.AuditService;
+import com.carrierfraud.domain.Department;
 import com.carrierfraud.domain.RiskAlert;
+import com.carrierfraud.domain.Role;
 import com.carrierfraud.infrastructure.RiskAlertRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
@@ -56,16 +62,20 @@ public class TransactionController {
     }
 
     @GetMapping("/alerts")
-    public ResponseEntity<List<RiskAlertResponse>> getAllAlerts() {
-        List<RiskAlert> alerts = alertRepository.findAll();
+    public ResponseEntity<List<RiskAlertResponse>> getAllAlerts(Authentication authentication) {
+        Role role = extractRole(authentication);
+        Set<Department> visibleDepartments = role.visibleDepartments();
+
+        List<RiskAlert> alerts = (role == Role.ADMIN)
+                ? alertRepository.findAll()
+                : alertRepository.findByAssignedDepartmentIn(visibleDepartments);
 
         auditService.record("LIST_ALERTS", "RiskAlert", null,
-                "count=" + alerts.size());
+                "role=" + role + " count=" + alerts.size());
 
         List<RiskAlertResponse> responses = alerts.stream()
                 .map(RiskAlertResponse::fromDomainAlert)
                 .toList();
-
         return ResponseEntity.ok(responses);
     }
 
@@ -141,5 +151,15 @@ public class TransactionController {
                 "Escalated to " + dept);
 
         return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(alert));
+    }
+
+    private Role extractRole(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(authority -> authority.startsWith("ROLE_"))
+                .map(authority -> authority.substring("ROLE_".length()))
+                .findFirst()
+                .map(Role::valueOf)
+                .orElseThrow(() -> new AccessDeniedException("No role assigned to authenticated user"));
     }
 }
