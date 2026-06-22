@@ -59,7 +59,6 @@ application.properties.env
 *.pfx
 
 ### Profile-specific Spring configs that may contain secrets ###
-application-prod.properties
 application-prod.yml
 application-secrets.properties
 
