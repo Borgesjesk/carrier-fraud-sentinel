@@ -1,9 +1,10 @@
 package com.carrierfraud.security;
 
-import io.jsonwebtoken.Claims;
+import com.carrierfraud.config.CookieProperties;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -17,7 +18,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -25,16 +28,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    private static final String AUTH_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
     private static final String ROLE_PREFIX = "ROLE_";
     private static final String USER_AGENT_HEADER = "User-Agent";
     private static final Set<String> VALID_ROLES = Set.of("ANALYST", "ADMIN", "COMPLIANCE");
 
     private final JwtService jwtService;
+    private final CookieProperties cookieProperties;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService, CookieProperties cookieProperties) {
         this.jwtService = jwtService;
+        this.cookieProperties = cookieProperties;
     }
 
     @Override
@@ -43,21 +46,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain chain
     ) throws ServletException, IOException {
-
-        String header = request.getHeader(AUTH_HEADER);
-        if (header == null || !header.startsWith(BEARER_PREFIX)) {
+        Optional<String> tokenOpt = extractTokenFromCookie(request);
+        if (tokenOpt.isEmpty()) {
             chain.doFilter(request, response);
             return;
         }
-
-        String token = header.substring(BEARER_PREFIX.length()).trim();
-        if (token.isEmpty()) {
-            chain.doFilter(request, response);
-            return;
-        }
-
         try {
-            authenticateToken(token, request);
+            authenticateToken(tokenOpt.get(), request);
         } catch (JwtException ex) {
             log.warn("Invalid JWT: uri={} remote={} ua={} reason={}",
                     request.getRequestURI(),
@@ -66,8 +61,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     ex.getClass().getSimpleName());
             SecurityContextHolder.clearContext();
         }
-
         chain.doFilter(request, response);
+    }
+
+    private Optional<String> extractTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) return Optional.empty();
+        return Arrays.stream(cookies)
+                .filter(c -> cookieProperties.name().equals(c.getName()))
+                .map(Cookie::getValue)
+                .filter(v -> v != null && !v.isBlank())
+                .findFirst();
     }
 
     private void authenticateToken(String token, HttpServletRequest request) {
