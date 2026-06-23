@@ -55,6 +55,21 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(username, role));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        ResponseCookie clearCookie = ResponseCookie.from(cookieProperties.name(), "")
+                .httpOnly(true)
+                .secure(cookieProperties.secure())
+                .sameSite(cookieProperties.sameSite())
+                .maxAge(0)
+                .path(cookieProperties.path())
+                .build();
+
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
+                .build();
+    }
+
     private String extractRole(Authentication authentication) {
         return authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)

@@ -172,4 +172,36 @@ class AuthControllerTest {
 
         assertThrows(AccessDeniedException.class, () -> controller.me(auth));
     }
+
+    @Test
+    void logout_returns204AndClearsCookie() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/auth/logout"))
+                .andExpect(status().isNoContent())
+                .andExpect(header().exists(HttpHeaders.SET_COOKIE))
+                .andReturn();
+
+        String setCookie = mvcResult.getResponse().getHeader(HttpHeaders.SET_COOKIE);
+        assertAll(
+                () -> assertThat(setCookie).contains(cookieProperties.name() + "="),
+                () -> assertThat(setCookie).contains("Max-Age=0"),
+                () -> assertThat(setCookie).contains("HttpOnly"),
+                () -> assertThat(setCookie).contains("Path=" + COOKIE_PATH)
+        );
+    }
+
+    @Test
+    void logout_isIdempotent_returns204EvenWithoutCookie() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/logout"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void logout_clearedCookieHasSamePathAsOriginal() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/auth/logout"))
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        String setCookie = mvcResult.getResponse().getHeader(HttpHeaders.SET_COOKIE);
+        assertThat(setCookie).contains("Path=" + COOKIE_PATH);
+    }
 }
