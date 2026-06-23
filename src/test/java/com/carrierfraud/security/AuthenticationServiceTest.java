@@ -3,7 +3,6 @@ package com.carrierfraud.security;
 import com.carrierfraud.domain.Role;
 import com.carrierfraud.domain.User;
 import com.carrierfraud.infrastructure.UserRepository;
-import com.carrierfraud.security.dto.AuthResponse;
 import com.carrierfraud.security.dto.LoginRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -43,7 +43,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    void login_returnsAuthResponseOnValidCredentials() {
+    void login_returnsLoginResultOnValidCredentials() {
         LoginRequest request = new LoginRequest(USERNAME, PASSWORD);
         Authentication authentication = new UsernamePasswordAuthenticationToken(USERNAME, PASSWORD);
 
@@ -53,11 +53,13 @@ class AuthenticationServiceTest {
         when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(user));
         when(jwtService.generateToken(anyString(), any())).thenReturn(EXPECTED_TOKEN);
 
-        AuthResponse response = authenticationService.login(request, REMOTE_ADDR);
+        LoginResult result = authenticationService.login(request, REMOTE_ADDR);
 
-        assertThat(response.accessToken()).isEqualTo(EXPECTED_TOKEN);
-        assertThat(response.tokenType()).isEqualTo("Bearer");
-        assertThat(response.role()).isEqualTo("ADMIN");
+        assertAll(
+                () -> assertThat(result.token()).isEqualTo(EXPECTED_TOKEN),
+                () -> assertThat(result.body().username()).isEqualTo(USERNAME),
+                () -> assertThat(result.body().role()).isEqualTo("ADMIN")
+        );
     }
 
     @Test

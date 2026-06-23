@@ -18,7 +18,6 @@ import java.util.Map;
 public class AuthenticationService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
-    private static final String TOKEN_TYPE = "Bearer";
     private static final String ROLE_CLAIM = "role";
 
     private final AuthenticationManager authenticationManager;
@@ -33,7 +32,7 @@ public class AuthenticationService {
         this.userRepository = userRepository;
     }
 
-    public AuthResponse login(LoginRequest request, String remoteAddr) {
+    public LoginResult login(LoginRequest request, String remoteAddr) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.username(), request.password())
@@ -46,7 +45,7 @@ public class AuthenticationService {
             log.info("Successful login: username={} role={} remote={}",
                     user.getUsername(), role, remoteAddr);
 
-            return new AuthResponse(token, TOKEN_TYPE, role);
+            return new LoginResult(token, new AuthResponse(user.getUsername(), role));
 
         } catch (AuthenticationException ex) {
             log.warn("Failed login attempt: username={} remote={} reason={}",

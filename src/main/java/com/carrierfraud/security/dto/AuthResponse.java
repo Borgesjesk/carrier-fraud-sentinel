@@ -1,4 +1,4 @@
 package com.carrierfraud.security.dto;
 
-public record AuthResponse(String accessToken, String tokenType, String role) {
+public record AuthResponse(String username, String role) {
 }

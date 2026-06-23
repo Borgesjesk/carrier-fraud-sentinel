@@ -1,35 +1,46 @@
 package com.carrierfraud.security;
 
+import com.carrierfraud.config.CookieProperties;
 import com.carrierfraud.security.dto.AuthResponse;
 import com.carrierfraud.security.dto.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthenticationService authenticationService;
+    private final CookieProperties cookieProperties;
 
-    public AuthController(AuthenticationService authenticationService) {
+    public AuthController(AuthenticationService authenticationService,
+                          CookieProperties cookieProperties) {
         this.authenticationService = authenticationService;
+        this.cookieProperties = cookieProperties;
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
                                               HttpServletRequest httpRequest) {
-        AuthResponse response = authenticationService.login(request, httpRequest.getRemoteAddr());
-        return ResponseEntity.ok(response);
+        LoginResult result = authenticationService.login(request, httpRequest.getRemoteAddr());
+
+        ResponseCookie cookie = ResponseCookie.from(cookieProperties.name(), result.token())
+                .httpOnly(true)
+                .secure(cookieProperties.secure())
+                .sameSite(cookieProperties.sameSite())
+                .maxAge(cookieProperties.maxAgeSeconds())
+                .path(cookieProperties.path())
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(result.body());
     }
 }
