@@ -64,6 +64,7 @@ public class SecurityConfig {
                                 .accessDeniedHandler(restAccessDeniedHandler)
                         )
                         .authorizeHttpRequests(auth -> auth
+                                .requestMatchers("/api/v1/auth/me").authenticated()
                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                 .requestMatchers("/", "/index.html", "/favicon.ico",
                                         "/static/**", "/css/**", "/js/**").permitAll()

@@ -16,9 +16,14 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -121,5 +126,50 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest(USERNAME, "short"))))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void me_authenticated_returnsUsernameAndRole() {
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "admin", null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+        var response = new AuthController(authenticationService, cookieProperties).me(auth);
+
+        assertAll(
+                () -> assertThat(response.getStatusCode().value()).isEqualTo(200),
+                () -> assertThat(response.getBody().username()).isEqualTo("admin"),
+                () -> assertThat(response.getBody().role()).isEqualTo("ADMIN"),
+                () -> assertThat(response.getHeaders().get(HttpHeaders.SET_COOKIE)).isNull()
+        );
+    }
+
+    @Test
+    void me_analystRole_returnsAnalyst() {
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "alice", null, List.of(new SimpleGrantedAuthority("ROLE_ANALYST")));
+
+        var response = new AuthController(authenticationService, cookieProperties).me(auth);
+
+        assertThat(response.getBody().role()).isEqualTo("ANALYST");
+    }
+
+    @Test
+    void me_noRolePrefix_throwsAccessDeniedException() {
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "alice", null, List.of(new SimpleGrantedAuthority("not_a_role")));
+        AuthController controller = new AuthController(authenticationService, cookieProperties);
+
+        AccessDeniedException ex = assertThrows(AccessDeniedException.class, () -> controller.me(auth));
+
+        assertThat(ex.getMessage()).isEqualTo("No role assigned to authenticated user");
+    }
+
+    @Test
+    void me_emptyAuthorities_throwsAccessDeniedException() {
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "alice", null, List.of());
+        AuthController controller = new AuthController(authenticationService, cookieProperties);
+
+        assertThrows(AccessDeniedException.class, () -> controller.me(auth));
     }
 }
