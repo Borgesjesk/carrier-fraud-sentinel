@@ -3,4 +3,4 @@ export interface AuthResponse {
   role: Role;
 }
 
-export type Role = 'ADMIN' | 'ANALYST' | 'COMPLIANCE';
+export type Role = 'ADMIN' | 'ANALYST' | 'COMPLIANCE' | 'CLIENT';
