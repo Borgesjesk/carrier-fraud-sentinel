@@ -64,6 +64,7 @@ public class ComplaintController {
                 department
         );
         alert.setDescription(request.description());
+        alert.setCreatedBy(authentication.getName());
 
         if (documents != null) {
             for (MultipartFile file : documents) {
@@ -79,6 +80,20 @@ public class ComplaintController {
                 "client=" + authentication.getName() + " docs=" + saved.getDocuments().size());
 
         return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(saved));
+    }
+
+    @GetMapping("/mine")
+    public ResponseEntity<List<RiskAlertResponse>> myComplaints(Authentication authentication) {
+        ensureClientRole(authentication);
+
+        List<RiskAlert> alerts = alertRepository.findByCreatedByOrderByCreatedDateDesc(authentication.getName());
+        auditService.record("LIST_MY_COMPLAINTS", "RiskAlert", null,
+                "client=" + authentication.getName() + " count=" + alerts.size());
+
+        List<RiskAlertResponse> responses = alerts.stream()
+                .map(RiskAlertResponse::fromDomainAlert)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{alertId}/documents/{documentId}")

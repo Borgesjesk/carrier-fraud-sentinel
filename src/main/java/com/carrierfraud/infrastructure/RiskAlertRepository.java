@@ -25,4 +25,6 @@ public interface RiskAlertRepository extends MongoRepository<RiskAlert, String> 
     List<RiskAlert> findByAssignedDepartmentIn(Set<Department> departments);
 
     long countByCarrierName(String carrierName);
+
+    List<RiskAlert> findByCreatedByOrderByCreatedDateDesc(String createdBy);
 }

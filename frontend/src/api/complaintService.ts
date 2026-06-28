@@ -5,6 +5,9 @@ import type { ComplaintRequest } from '../types/Complaint';
 const BASE = '/api/v1/complaints';
 
 export const complaintService = {
+  myComplaints: async (): Promise<Alert[]> =>
+    (await apiClient.get<Alert[]>(`${BASE}/mine`)).data,
+
   submit: async (request: ComplaintRequest, documents: File[]): Promise<Alert> => {
     const formData = new FormData();
     formData.append(

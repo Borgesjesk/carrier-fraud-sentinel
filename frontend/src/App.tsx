@@ -5,10 +5,11 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AlertDetailPage } from './pages/AlertDetailPage';
 import { ClientComplaintPage } from './pages/ClientComplaintPage';
+import { MyComplaintsPage } from './pages/MyComplaintsPage';
 
 function RoleBasedHome() {
   const { user } = useAuth();
-  return <Navigate to={user?.role === 'CLIENT' ? '/complaints/new' : '/dashboard'} replace />;
+  return <Navigate to={user?.role === 'CLIENT' ? '/complaints/mine' : '/dashboard'} replace />;
 }
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/alerts/:alertId" element={<ProtectedRoute><AlertDetailPage /></ProtectedRoute>} />
           <Route path="/complaints/new" element={<ProtectedRoute><ClientComplaintPage /></ProtectedRoute>} />
+          <Route path="/complaints/mine" element={<ProtectedRoute><MyComplaintsPage /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><RoleBasedHome /></ProtectedRoute>} />
           <Route path="*" element={<ProtectedRoute><RoleBasedHome /></ProtectedRoute>} />
         </Routes>

@@ -30,6 +30,7 @@ public class RiskAlert {
 
     private String description;
     private java.util.List<DocumentMetadata> documents = new java.util.ArrayList<>();
+    private String createdBy;
 
     public RiskAlert(
             String alertId,
@@ -263,6 +264,7 @@ public class RiskAlert {
         );
 
     }
+
     public String getDescription() {
         return description;
     }
@@ -280,5 +282,13 @@ public class RiskAlert {
             throw new IllegalArgumentException("Document cannot be null");
         }
         this.documents.add(document);
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 }
