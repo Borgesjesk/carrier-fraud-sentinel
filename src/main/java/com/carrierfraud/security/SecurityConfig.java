@@ -70,6 +70,7 @@ public class SecurityConfig {
                                         "/static/**", "/css/**", "/js/**").permitAll()
                                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                                 .requestMatchers("/api/v1/complaints", "/api/v1/complaints/mine").hasRole("CLIENT")
+                                .requestMatchers("/api/v1/alerts/*/comments/**").authenticated()
                                 .requestMatchers("/api/v1/complaints/*/documents/*").authenticated()
                                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                                 .anyRequest().authenticated()
