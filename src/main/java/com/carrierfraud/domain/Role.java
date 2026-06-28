@@ -30,7 +30,12 @@ public enum Role {
                 Department.DEPARTMENT_MANAGER
             );
         }
+    },
+    CLIENT {
+        @Override
+        public Set<Department> visibleDepartments() {
+            return EnumSet.noneOf(Department.class);
+        }
     };
-
     public abstract Set<Department> visibleDepartments();
 }

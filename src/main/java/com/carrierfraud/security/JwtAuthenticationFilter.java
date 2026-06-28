@@ -30,7 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String ROLE_PREFIX = "ROLE_";
     private static final String USER_AGENT_HEADER = "User-Agent";
-    private static final Set<String> VALID_ROLES = Set.of("ANALYST", "ADMIN", "COMPLIANCE");
+    private static final Set<String> VALID_ROLES = Set.of("ANALYST", "ADMIN", "COMPLIANCE", "CLIENT");
 
     private final JwtService jwtService;
     private final CookieProperties cookieProperties;

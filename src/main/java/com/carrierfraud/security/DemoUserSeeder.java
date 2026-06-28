@@ -22,18 +22,21 @@ public class DemoUserSeeder implements CommandLineRunner {
     private final String adminPassword;
     private final String analystPassword;
     private final String compliancePassword;
+    private final String clientPassword;
     private static final int MIN_PASSWORD_LENGTH = 12;
 
     public DemoUserSeeder(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           @Value("${app.seed.admin-password}") String adminPassword,
                           @Value("${app.seed.analyst-password}") String analystPassword,
-                          @Value("${app.seed.compliance-password}") String compliancePassword) {
+                          @Value("${app.seed.compliance-password}") String compliancePassword,
+                          @Value("${app.seed.client-password}") String clientPassword) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.adminPassword = adminPassword;
         this.analystPassword = analystPassword;
         this.compliancePassword = compliancePassword;
+        this.clientPassword = clientPassword;
     }
 
     @Override
@@ -41,6 +44,7 @@ public class DemoUserSeeder implements CommandLineRunner {
         seedUser("admin", adminPassword, Role.ADMIN);
         seedUser("analyst", analystPassword, Role.ANALYST);
         seedUser("compliance", compliancePassword, Role.COMPLIANCE);
+        seedUser("client1", clientPassword, Role.CLIENT);
     }
 
     private void seedUser(String username, String rawPassword, Role role) {
