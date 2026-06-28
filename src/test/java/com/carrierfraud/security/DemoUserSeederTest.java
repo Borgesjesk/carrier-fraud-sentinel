@@ -22,6 +22,7 @@ class DemoUserSeederTest {
     private static final String STRONG_ADMIN = "AdminPass1234!";
     private static final String STRONG_ANALYST = "AnalystPass1234!";
     private static final String STRONG_COMPLIANCE = "CompliancePass1234!";
+    private static final String STRONG_CLIENT = "ClientPass1234!";
 
     @Mock private UserRepository userRepository;
     @Mock private PasswordEncoder passwordEncoder;
@@ -29,20 +30,20 @@ class DemoUserSeederTest {
     @Test
     void run_seedsAllThreeUsersWhenMissing() {
         DemoUserSeeder seeder = new DemoUserSeeder(
-                userRepository, passwordEncoder, STRONG_ADMIN, STRONG_ANALYST, STRONG_COMPLIANCE);
+                userRepository, passwordEncoder, STRONG_ADMIN, STRONG_ANALYST, STRONG_COMPLIANCE, STRONG_CLIENT);
 
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("hashed");
 
         seeder.run();
 
-        verify(userRepository, times(3)).save(any(User.class));
+        verify(userRepository, times(4)).save(any(User.class));
     }
 
     @Test
     void run_skipsExistingUsers() {
         DemoUserSeeder seeder = new DemoUserSeeder(
-                userRepository, passwordEncoder, STRONG_ADMIN, STRONG_ANALYST, STRONG_COMPLIANCE);
+                userRepository, passwordEncoder, STRONG_ADMIN, STRONG_ANALYST, STRONG_COMPLIANCE, STRONG_CLIENT);
 
         when(userRepository.existsByUsername(anyString())).thenReturn(true);
 
@@ -54,7 +55,7 @@ class DemoUserSeederTest {
     @Test
     void run_throwsOnShortAdminPassword() {
         DemoUserSeeder seeder = new DemoUserSeeder(
-                userRepository, passwordEncoder, "short", STRONG_ANALYST, STRONG_COMPLIANCE);
+                userRepository, passwordEncoder, "short", STRONG_ANALYST, STRONG_COMPLIANCE, STRONG_CLIENT);
 
         assertThatThrownBy(seeder::run)
                 .isInstanceOf(IllegalStateException.class)
@@ -64,7 +65,7 @@ class DemoUserSeederTest {
     @Test
     void run_throwsOnNullAnalystPassword() {
         DemoUserSeeder seeder = new DemoUserSeeder(
-                userRepository, passwordEncoder, STRONG_ADMIN, null, STRONG_COMPLIANCE);
+                userRepository, passwordEncoder, STRONG_ADMIN, null, STRONG_COMPLIANCE, STRONG_CLIENT);
 
         when(userRepository.existsByUsername("admin")).thenReturn(true);
 
