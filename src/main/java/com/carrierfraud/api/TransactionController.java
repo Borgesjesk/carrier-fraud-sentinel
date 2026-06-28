@@ -79,6 +79,26 @@ public class TransactionController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/alerts/{alertId}")
+    public ResponseEntity<RiskAlertResponse> getAlertById(
+            @PathVariable String alertId,
+            Authentication authentication) {
+
+        Role role = extractRole(authentication);
+        RiskAlert alert = alertRepository.findByAlertId(alertId)
+                .orElseThrow(() -> new com.carrierfraud.domain.BusinessRuleException(
+                        "Alert not found: " + alertId));
+
+        if (role != Role.ADMIN && !role.visibleDepartments().contains(alert.getAssignedDepartment())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "User role " + role + " cannot access alerts from " + alert.getAssignedDepartment());
+        }
+
+        auditService.record("VIEW_ALERT", "RiskAlert", alertId, "role=" + role);
+
+        return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(alert));
+    }
+
     @PutMapping("/alerts/{alertId}/accept")
     public ResponseEntity<RiskAlertResponse> acceptAlert(
             @PathVariable String alertId,
