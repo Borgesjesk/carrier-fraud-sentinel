@@ -28,6 +28,8 @@ public class RiskAlert {
     private String resolutionNotes;
     private String escalatedTo;
 
+    private String description;
+    private java.util.List<DocumentMetadata> documents = new java.util.ArrayList<>();
 
     public RiskAlert(
             String alertId,
@@ -260,5 +262,23 @@ public class RiskAlert {
                 slaDeadline
         );
 
+    }
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public java.util.List<DocumentMetadata> getDocuments() {
+        return java.util.Collections.unmodifiableList(documents);
+    }
+
+    public void addDocument(DocumentMetadata document) {
+        if (document == null) {
+            throw new IllegalArgumentException("Document cannot be null");
+        }
+        this.documents.add(document);
     }
 }

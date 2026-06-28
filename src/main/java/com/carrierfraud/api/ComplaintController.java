@@ -1,0 +1,132 @@
+package com.carrierfraud.api;
+
+import com.carrierfraud.audit.AuditService;
+import com.carrierfraud.domain.AlertSeverity;
+import com.carrierfraud.domain.Department;
+import com.carrierfraud.domain.DocumentMetadata;
+import com.carrierfraud.domain.RiskAlert;
+import com.carrierfraud.infrastructure.RiskAlertRepository;
+import com.carrierfraud.infrastructure.storage.DocumentStorage;
+import jakarta.validation.Valid;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.Instant;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/complaints")
+public class ComplaintController {
+
+    private static final String CLIENT_ROLE = "ROLE_CLIENT";
+
+    private final RiskAlertRepository alertRepository;
+    private final DocumentStorage documentStorage;
+    private final AuditService auditService;
+
+    public ComplaintController(RiskAlertRepository alertRepository,
+                               DocumentStorage documentStorage,
+                               AuditService auditService) {
+        this.alertRepository = alertRepository;
+        this.documentStorage = documentStorage;
+        this.auditService = auditService;
+    }
+
+    @PostMapping
+    public ResponseEntity<RiskAlertResponse> submitComplaint(
+            @Valid @RequestPart("complaint") ComplaintRequest request,
+            @RequestPart(value = "documents", required = false) MultipartFile[] documents,
+            Authentication authentication) {
+
+        ensureClientRole(authentication);
+
+        Department department = routeByComplaintType(request.complaintType());
+        String alertId = generateAlertId(request.carrierName());
+
+        RiskAlert alert = new RiskAlert(
+                alertId,
+                request.carrierName(),
+                0.5,
+                "ClientComplaint:" + request.complaintType(),
+                AlertSeverity.MEDIUM,
+                department
+        );
+        alert.setDescription(request.description());
+
+        if (documents != null) {
+            for (MultipartFile file : documents) {
+                if (file != null && !file.isEmpty()) {
+                    DocumentMetadata metadata = documentStorage.store(file);
+                    alert.addDocument(metadata);
+                }
+            }
+        }
+
+        RiskAlert saved = alertRepository.save(alert);
+        auditService.record("SUBMIT_COMPLAINT", "RiskAlert", saved.getAlertId(),
+                "client=" + authentication.getName() + " docs=" + saved.getDocuments().size());
+
+        return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(saved));
+    }
+
+    @GetMapping("/{alertId}/documents/{documentId}")
+    public ResponseEntity<InputStreamResource> downloadDocument(
+            @PathVariable String alertId,
+            @PathVariable String documentId,
+            Authentication authentication) {
+
+        RiskAlert alert = alertRepository.findByAlertId(alertId)
+                .orElseThrow(() -> new com.carrierfraud.domain.BusinessRuleException(
+                        "Alert not found: " + alertId));
+
+        DocumentMetadata document = alert.getDocuments().stream()
+                .filter(d -> d.documentId().equals(documentId))
+                .findFirst()
+                .orElseThrow(() -> new com.carrierfraud.domain.BusinessRuleException(
+                        "Document not found: " + documentId));
+
+        auditService.record("DOWNLOAD_DOCUMENT", "Document", documentId,
+                "user=" + authentication.getName() + " alert=" + alertId);
+
+        InputStreamResource resource = new InputStreamResource(documentStorage.load(document.storedPath()));
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(document.contentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + document.originalFilename() + "\"")
+                .body(resource);
+    }
+
+    private void ensureClientRole(Authentication authentication) {
+        boolean isClient = authentication.getAuthorities().stream()
+                .anyMatch(a -> CLIENT_ROLE.equals(a.getAuthority()));
+        if (!isClient) {
+            throw new AccessDeniedException("Only CLIENT users can submit complaints");
+        }
+    }
+
+    private Department routeByComplaintType(String complaintType) {
+        return switch (complaintType.toUpperCase()) {
+            case "INSURANCE", "ACCIDENT" -> Department.INSURANCE;
+            case "PAYMENT", "REVIEWING" -> Department.MEDIATION;
+            case "COMMERCIAL_DISPUTE", "FRAUD" -> Department.FRAUD_INVESTIGATION;
+            default -> Department.LEGAL;
+        };
+    }
+
+    private String generateAlertId(String carrierName) {
+        String normalized = carrierName.toUpperCase().replaceAll("[^A-Z0-9]", "");
+        return "COMPLAINT_" + normalized + "_" + Instant.now().toEpochMilli();
+    }
+}

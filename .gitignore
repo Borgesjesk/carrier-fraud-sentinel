@@ -84,3 +84,5 @@ dump/
 *.swp
 *.swo
 *.orig
+# Local file uploads (dev only)
+uploads/
