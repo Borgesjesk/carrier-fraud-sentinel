@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Search, XCircle, ArrowUpCircle } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
+import { CommentsThread } from '../components/CommentsThread';
 import { alertService } from '../api/alertService';
 import type { Alert, Severity, AlertStatus } from '../types/Alert';
 
@@ -135,6 +136,10 @@ export function AlertDetailPage() {
                 State transitions: UNASSIGNED → ACCEPTED → IN_PROGRESS → RESOLVED (or ESCALATED at any time)
               </p>
             </section>
+
+            <div className="mt-6">
+              <CommentsThread alertId={alert.alertId} />
+            </div>
           </>
         )}
       </main>
