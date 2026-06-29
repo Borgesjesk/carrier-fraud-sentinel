@@ -43,7 +43,7 @@ public class DiskDocumentStorage implements DocumentStorage {
     }
 
     @Override
-    public DocumentMetadata store(MultipartFile file) {
+    public DocumentMetadata store(MultipartFile file, com.carrierfraud.domain.DocumentCategory category) {
         validate(file);
         String documentId = UUID.randomUUID().toString();
         String safeName = documentId + extensionOf(file.getOriginalFilename());
@@ -65,7 +65,8 @@ public class DiskDocumentStorage implements DocumentStorage {
                 destination.toString(),
                 file.getContentType(),
                 file.getSize(),
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                category
         );
     }
 

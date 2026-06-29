@@ -103,7 +103,8 @@ class ComplaintControllerTest {
                 "documents", "b.pdf", "application/pdf", "b".getBytes());
 
         when(documentStorage.store(any())).thenReturn(new DocumentMetadata(
-                "doc-id", "a.pdf", "/path", "application/pdf", 1, LocalDateTime.now()));
+                "doc-id", "a.pdf", "/path", "application/pdf", 1, LocalDateTime.now(),
+                com.carrierfraud.domain.DocumentCategory.OTHER));
 
         ComplaintRequest request = new ComplaintRequest(
                 "Carrier-W",

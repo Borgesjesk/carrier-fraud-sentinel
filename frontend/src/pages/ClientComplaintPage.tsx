@@ -4,6 +4,7 @@ import { ShieldCheck, LogOut, Upload, X, FileText, AlertCircle, Loader2, CheckCi
 import { useAuth } from '../auth/AuthContext';
 import { complaintService } from '../api/complaintService';
 import type { ComplaintType } from '../types/Complaint';
+import type { DocumentCategory } from '../types/Alert';
 import { AxiosError } from 'axios';
 import type { ProblemDetail } from '../types/ProblemDetail';
 
@@ -18,6 +19,13 @@ const COMPLAINT_TYPES: { value: ComplaintType; label: string }[] = [
 
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 10 * 1024 * 1024;
+const DOCUMENT_CATEGORIES: { value: DocumentCategory; label: string }[] = [
+  { value: 'INVOICE', label: 'Factura' },
+  { value: 'CMR', label: 'CMR' },
+  { value: 'LOAD_ORDER', label: 'Orden de carga' },
+  { value: 'EMAIL', label: 'Email / texto' },
+  { value: 'OTHER', label: 'Otro' },
+];
 
 export function ClientComplaintPage() {
   const { user, logout } = useAuth();
@@ -27,6 +35,7 @@ export function ClientComplaintPage() {
   const [complaintType, setComplaintType] = useState<ComplaintType>('PAYMENT');
   const [description, setDescription] = useState('');
   const [documents, setDocuments] = useState<File[]>([]);
+  const [categories, setCategories] = useState<DocumentCategory[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -46,11 +55,17 @@ export function ClientComplaintPage() {
       }
     }
     setDocuments((prev) => [...prev, ...files]);
-    event.target.value = '';
+        setCategories((prev) => [...prev, ...files.map(() => 'OTHER' as DocumentCategory)]);
+        event.target.value = '';
   };
 
   const removeDocument = (index: number) => {
-    setDocuments((prev) => prev.filter((_, i) => i !== index));
+      setDocuments((prev) => prev.filter((_, i) => i !== index));
+      setCategories((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateCategory = (index: number, category: DocumentCategory) => {
+      setCategories((prev) => prev.map((c, i) => (i === index ? category : c)));
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -66,13 +81,15 @@ export function ClientComplaintPage() {
     setIsSubmitting(true);
     try {
       const result = await complaintService.submit(
-        { carrierName, description, complaintType },
-        documents
-      );
+              { carrierName, description, complaintType },
+              documents,
+              categories
+            );
       setSuccess(`Case ${result.alertId} created. Routed to ${result.assignedDepartment}.`);
       setCarrierName('');
       setDescription('');
       setDocuments([]);
+      setCategories([]);
       setComplaintType('PAYMENT');
     } catch (err) {
       const axiosError = err as AxiosError<ProblemDetail>;
@@ -198,20 +215,30 @@ export function ClientComplaintPage() {
               <ul className="mt-3 space-y-2">
                 {documents.map((file, index) => (
                   <li key={index} className="flex items-center gap-3 px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg">
-                    <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-slate-200 truncate">{file.name}</div>
-                      <div className="text-xs text-slate-500">{formatBytes(file.size)}</div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeDocument(index)}
-                      disabled={isSubmitting}
-                      className="p-1 text-slate-400 hover:text-red-400 transition"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </li>
+                                      <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="text-sm text-slate-200 truncate">{file.name}</div>
+                                        <div className="text-xs text-slate-500">{formatBytes(file.size)}</div>
+                                      </div>
+                                      <select
+                                        value={categories[index] || 'OTHER'}
+                                        onChange={(e) => updateCategory(index, e.target.value as DocumentCategory)}
+                                        disabled={isSubmitting}
+                                        className="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                                      >
+                                        {DOCUMENT_CATEGORIES.map((c) => (
+                                          <option key={c.value} value={c.value}>{c.label}</option>
+                                        ))}
+                                      </select>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeDocument(index)}
+                                        disabled={isSubmitting}
+                                        className="p-1 text-slate-400 hover:text-red-400 transition"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </li>
                 ))}
               </ul>
             )}

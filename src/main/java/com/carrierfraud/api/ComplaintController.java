@@ -48,6 +48,7 @@ public class ComplaintController {
     public ResponseEntity<RiskAlertResponse> submitComplaint(
             @Valid @RequestPart("complaint") ComplaintRequest request,
             @RequestPart(value = "documents", required = false) MultipartFile[] documents,
+            @RequestParam(value = "categories", required = false) String[] categories,
             Authentication authentication) {
 
         ensureClientRole(authentication);
@@ -67,9 +68,11 @@ public class ComplaintController {
         alert.setCreatedBy(authentication.getName());
 
         if (documents != null) {
-            for (MultipartFile file : documents) {
+            for (int i = 0; i < documents.length; i++) {
+                MultipartFile file = documents[i];
                 if (file != null && !file.isEmpty()) {
-                    DocumentMetadata metadata = documentStorage.store(file);
+                    com.carrierfraud.domain.DocumentCategory category = parseCategory(categories, i);
+                    DocumentMetadata metadata = documentStorage.store(file, category);
                     alert.addDocument(metadata);
                 }
             }
@@ -100,6 +103,7 @@ public class ComplaintController {
     public ResponseEntity<InputStreamResource> downloadDocument(
             @PathVariable String alertId,
             @PathVariable String documentId,
+            @org.springframework.web.bind.annotation.RequestParam(value = "inline", required = false, defaultValue = "false") boolean inline,
             Authentication authentication) {
 
         RiskAlert alert = alertRepository.findByAlertId(alertId)
@@ -119,7 +123,7 @@ public class ComplaintController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(document.contentType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + document.originalFilename() + "\"")
+                        (inline ? "inline" : "attachment") + "; filename=\"" + document.originalFilename() + "\"")
                 .body(resource);
     }
 
@@ -143,5 +147,16 @@ public class ComplaintController {
     private String generateAlertId(String carrierName) {
         String normalized = carrierName.toUpperCase().replaceAll("[^A-Z0-9]", "");
         return "COMPLAINT_" + normalized + "_" + Instant.now().toEpochMilli();
+    }
+
+    private com.carrierfraud.domain.DocumentCategory parseCategory(String[] categories, int index) {
+        if (categories == null || index >= categories.length || categories[index] == null) {
+            return com.carrierfraud.domain.DocumentCategory.OTHER;
+        }
+        try {
+            return com.carrierfraud.domain.DocumentCategory.valueOf(categories[index].toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return com.carrierfraud.domain.DocumentCategory.OTHER;
+        }
     }
 }

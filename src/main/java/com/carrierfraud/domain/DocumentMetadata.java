@@ -8,7 +8,8 @@ public record DocumentMetadata(
         String storedPath,
         String contentType,
         long sizeBytes,
-        LocalDateTime uploadedAt
+        LocalDateTime uploadedAt,
+        DocumentCategory category
 ) {
     public DocumentMetadata {
         if (documentId == null || documentId.isBlank()) {
@@ -22,6 +23,9 @@ public record DocumentMetadata(
         }
         if (sizeBytes <= 0) {
             throw new IllegalArgumentException("sizeBytes must be positive");
+        }
+        if (category == null) {
+            category = DocumentCategory.OTHER;
         }
     }
 }

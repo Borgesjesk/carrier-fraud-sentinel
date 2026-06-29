@@ -8,6 +8,8 @@ export type AlertStatus =
   | 'RESOLVED'
   | 'ESCALATED';
 
+export type DocumentCategory = 'INVOICE' | 'CMR' | 'LOAD_ORDER' | 'EMAIL' | 'OTHER';
+
 export interface DocumentMetadata {
   documentId: string;
   originalFilename: string;
@@ -15,6 +17,7 @@ export interface DocumentMetadata {
   contentType: string;
   sizeBytes: number;
   uploadedAt: string;
+  category: DocumentCategory;
 }
 
 export interface Alert {

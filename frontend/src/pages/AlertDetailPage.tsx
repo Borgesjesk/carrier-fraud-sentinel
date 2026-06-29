@@ -151,11 +151,19 @@ export function AlertDetailPage() {
                     <li key={doc.documentId} className="flex items-center gap-3 px-3 py-2 bg-slate-800/30 border border-slate-800 rounded-lg">
                       <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm text-slate-200 truncate">{doc.originalFilename}</div>
-                        <div className="text-xs text-slate-500">{(doc.sizeBytes / 1024).toFixed(1)} KB · {doc.contentType}</div>
+                        <div className="flex items-center gap-2">
+                                                  <span className="text-sm text-slate-200 truncate">{doc.originalFilename}</span>
+                                                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-sky-500/15 text-sky-300 border border-sky-500/30 rounded uppercase tracking-wide">
+                                                    {doc.category === 'INVOICE' ? 'Factura' :
+                                                     doc.category === 'CMR' ? 'CMR' :
+                                                     doc.category === 'LOAD_ORDER' ? 'Orden carga' :
+                                                     doc.category === 'EMAIL' ? 'Email' : 'Otro'}
+                                                  </span>
+                                                </div>
+                                                <div className="text-xs text-slate-500">{(doc.sizeBytes / 1024).toFixed(1)} KB · {doc.contentType}</div>
                       </div>
                       <a
-                        href={`${import.meta.env.VITE_API_BASE_URL}/api/v1/complaints/${alert.alertId}/documents/${doc.documentId}`}
+                        href={`${import.meta.env.VITE_API_BASE_URL}/api/v1/complaints/${alert.alertId}/documents/${doc.documentId}?inline=true`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 px-3 py-1.5 text-xs text-sky-300 hover:text-sky-200 hover:bg-sky-500/10 rounded-lg transition"
