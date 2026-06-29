@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, LogOut, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { alertService } from '../api/alertService';
 import { alertReadService } from '../api/alertReadService';
 import { MessageCircle } from 'lucide-react';
+import { useRef } from 'react';
+import { Toast } from '../components/Toast';
 import type { Alert, Severity } from '../types/Alert';
 
 const SEVERITY_STYLES: Record<Severity, string> = {
@@ -20,6 +22,10 @@ export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const navigate = useNavigate();
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const previousCountsRef = useRef<Record<string, number>>({});
+  const isFirstLoadRef = useRef(true);
 
   useEffect(() => {
       let cancelled = false;
@@ -31,8 +37,25 @@ export function DashboardPage() {
           .finally(() => { if (!cancelled) setIsLoading(false); });
 
         alertReadService.unreadCounts()
-          .then((counts) => { if (!cancelled) setUnreadCounts(counts); })
-          .catch(() => {});
+                .then((counts) => {
+                  if (cancelled) return;
+
+                  if (!isFirstLoadRef.current) {
+                    const totalNew = Object.entries(counts).reduce((acc, [alertId, count]) => {
+                      const previous = previousCountsRef.current[alertId] ?? 0;
+                      return acc + Math.max(0, count - previous);
+                    }, 0);
+
+                    if (totalNew > 0) {
+                      setToastMessage(`${totalNew} new comment${totalNew > 1 ? 's' : ''} received`);
+                    }
+                  }
+
+                  previousCountsRef.current = counts;
+                  isFirstLoadRef.current = false;
+                  setUnreadCounts(counts);
+                })
+                .catch(() => {});
       };
 
       load();
@@ -60,6 +83,20 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
+      {toastMessage && (
+              <Toast
+                message={toastMessage}
+                onClose={() => setToastMessage(null)}
+                onClick={() => {
+                  const alertWithMostUnread = Object.entries(unreadCounts)
+                    .filter(([, count]) => count > 0)
+                    .sort(([, a], [, b]) => b - a)[0];
+                  if (alertWithMostUnread) {
+                    navigate(`/alerts/${alertWithMostUnread[0]}`);
+                  }
+                }}
+              />
+            )}
       {/* Header */}
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">

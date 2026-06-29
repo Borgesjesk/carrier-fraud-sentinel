@@ -5,6 +5,8 @@ import { useAuth } from '../auth/AuthContext';
 import { complaintService } from '../api/complaintService';
 import { alertReadService } from '../api/alertReadService';
 import { MessageCircle } from 'lucide-react';
+import { useRef } from 'react';
+import { Toast } from '../components/Toast';
 import type { Alert, AlertStatus } from '../types/Alert';
 
 const STATUS_STYLES: Record<AlertStatus, string> = {
@@ -25,6 +27,9 @@ export function MyComplaintsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const previousCountsRef = useRef<Record<string, number>>({});
+  const isFirstLoadRef = useRef(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,8 +41,22 @@ export function MyComplaintsPage() {
             .finally(() => { if (!cancelled) setIsLoading(false); });
 
           alertReadService.unreadCounts()
-            .then((counts) => { if (!cancelled) setUnreadCounts(counts); })
-            .catch(() => {});
+                  .then((counts) => {
+                    if (cancelled) return;
+                    if (!isFirstLoadRef.current) {
+                      const totalNew = Object.entries(counts).reduce((acc, [alertId, count]) => {
+                        const previous = previousCountsRef.current[alertId] ?? 0;
+                        return acc + Math.max(0, count - previous);
+                      }, 0);
+                      if (totalNew > 0) {
+                        setToastMessage(`${totalNew} new update${totalNew > 1 ? 's' : ''} on your cases`);
+                      }
+                    }
+                    previousCountsRef.current = counts;
+                    isFirstLoadRef.current = false;
+                    setUnreadCounts(counts);
+                  })
+                  .catch(() => {});
     };
 
     load();
@@ -55,6 +74,20 @@ export function MyComplaintsPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
+      {toastMessage && (
+          <Toast
+            message={toastMessage}
+            onClose={() => setToastMessage(null)}
+            onClick={() => {
+                const alertWithMostUnread = Object.entries(unreadCounts)
+                  .filter(([, count]) => count > 0)
+                  .sort(([, a], [, b]) => b - a)[0];
+                if (alertWithMostUnread) {
+                  navigate(`/alerts/${alertWithMostUnread[0]}`);
+                }
+              }}
+            />
+          )}
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
