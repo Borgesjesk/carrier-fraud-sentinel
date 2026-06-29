@@ -78,10 +78,13 @@ export function AlertDetailPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2 text-slate-300 hover:text-slate-100 transition">
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">Dashboard</span>
-          </Link>
+          <Link
+                      to={user?.role === 'CLIENT' ? '/complaints/mine' : '/dashboard'}
+                      className="flex items-center gap-2 text-slate-300 hover:text-slate-100 transition"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span className="text-sm">{user?.role === 'CLIENT' ? 'My cases' : 'Dashboard'}</span>
+                    </Link>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-sky-400" />
             <span className="text-sm font-medium">FraudSentinel</span>
