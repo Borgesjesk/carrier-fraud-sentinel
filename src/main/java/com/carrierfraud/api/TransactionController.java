@@ -89,7 +89,11 @@ public class TransactionController {
                 .orElseThrow(() -> new com.carrierfraud.domain.BusinessRuleException(
                         "Alert not found: " + alertId));
 
-        if (role != Role.ADMIN && !role.visibleDepartments().contains(alert.getAssignedDepartment())) {
+        if (role == Role.CLIENT) {
+            if (!authentication.getName().equals(alert.getCreatedBy())) {
+                throw new org.springframework.security.access.AccessDeniedException("Clients can only access their own alerts");
+            }
+        } else if (role != Role.ADMIN && !role.visibleDepartments().contains(alert.getAssignedDepartment())) {
             throw new org.springframework.security.access.AccessDeniedException(
                     "User role " + role + " cannot access alerts from " + alert.getAssignedDepartment());
         }

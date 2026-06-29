@@ -1,183 +1,229 @@
-# 🛡️ FraudSentinel
+# FraudSentinel
 
-**Real-time carrier fraud detection and case-routing platform for freight exchanges.**
+A carrier fraud detection platform with role-based access control, multi-channel case management, and real-time alert routing.
 
-Built to address a common bottleneck in European freight-exchange platforms: carrier dispute cases that sit in a single queue for manual triage, with no automated routing, prioritization, or pattern detection across cases.
-
----
-
-## The Problem
-
-Freight-exchange platforms — used by tens of thousands of transport companies across Europe — handle a high volume of carrier disputes monthly. The industry-wide pattern I observed during my six years as a fraud investigator in this sector: cases sit in a single queue for human triage, with no prioritization between low-value payment disputes and high-value fraud, and no detection of repeat-offender patterns across cases. FraudSentinel is one approach to closing that gap.
-
-- **Days** of lead time before the right team even sees the case
-- **No prioritization** between a €200 payment dispute and a €50K insurance fraud
-- **No detection** of repeat-offender patterns across cases
-- **No audit trail** for compliance / GDPR Article 32
-
-
+Built as the final project for the IT Academy Barcelona Java Backend bootcamp. The design comes directly from six years of fraud investigation work at a European freight exchange, where I dealt daily with the patterns this system detects: carriers gaming payment terms, escalating offer prices, and accumulating complaints across multiple categories.
 
 ---
 
-## What It Does
+## What it does
 
-| Rule | Trigger | Severity |
-|---|---|---|
-| **Payment Reconciliation** | Carrier has ≥80% unpaid invoice rate | ALERT |
-| **Offer Price Escalation** | Price deviation outside historical band | ALERT |
-| **Complaint Accumulation** | 5+ open / 10+ per week / 20+ per month | ALERT |
-| **Repeat Accidents** | ≥2 accidents per month | ALERT |
-| **Commercial Disputes** | ≥3 unresolved disputes | **CRITICAL** |
+FraudSentinel scores carrier transactions in real time, generates alerts with calculated severity, and routes them to the responsible department automatically. From the moment a case enters the system — whether triggered by detection rules or submitted by a client — it follows a tracked lifecycle: routed, claimed, investigated, resolved or escalated, with full audit trail and bidirectional communication.
 
-**Auto-routing by domain:**
-LEGAL · INSURANCE · PAYMENT_RECONCILIATION · FRAUD_INVESTIGATION · COMPLIANCE_REVIEW · OPERATIONS · SALES (churn) · ACCOUNT_MANAGEMENT (upsell)
+There are two distinct user flows:
 
-**Status flow:** `UNASSIGNED → ASSIGNED → ACCEPTED → IN_PROGRESS → RESOLVED`
+**Internal staff** (Admin, Analyst, Compliance) see the alerts that fall under their role's visible departments. They can claim a case, investigate it, resolve it with a written summary, or escalate to another team. Every case has a comment thread where staff and the affected client can communicate.
+
+**External clients** (carriers submitting complaints) log in to a separate flow. They cannot see other carriers' cases or internal alerts. They submit a complaint with a description and supporting documents (PDF or images), then track the status of their case and respond to investigator questions through the same comment thread.
 
 ---
 
-## 🏗️ Architecture
+## Why it exists
 
-Hexagonal architecture with explicit boundaries between domain logic, application services, and infrastructure adapters.
+I spent six years at a European carrier matching platform, investigating fraud, KYC, and AML compliance for European carriers. The patterns this system detects — payment reconciliation gaps, price escalation, complaint accumulation — are the exact patterns I worked with daily.
+
+The detection rules and department routing reflect how real freight fraud investigation actually works. The CLIENT role exists because carriers need a way to submit cases without staff manually entering them. The comment thread exists because investigation is conversation, not just status updates.
+
+This is a portfolio project, but it's not generic. It's the system I wished existed.
+
+---
+
+## Tech stack
+
+**Backend**
+- Java 21 (Eclipse Temurin)
+- Spring Boot 3.5.14 (LTS)
+- MongoDB Atlas (replica set, eu-west-3)
+- Spring Security with JWT signed HS384
+- BCrypt password hashing, strength 12
+- HttpOnly + Secure + SameSite=Strict cookie authentication
+- Multipart file upload with disk-based storage (Strategy pattern, ready to swap for S3 or MinIO)
+- RFC 7807 Problem Details for all error responses
+
+**Frontend**
+- React 19 with TypeScript 5
+- Vite 8
+- Tailwind CSS v4 (utility-first, dark mode by default)
+- React Router 7 with role-based protected routes
+- Axios configured with `withCredentials` so the HttpOnly cookie travels automatically
+- Lucide React for icons
+
+**DevSecOps**
+- OWASP Dependency-Check (fails build on CVSS ≥ 7.0)
+- SpotBugs + FindSecBugs for static analysis
+- JaCoCo with a 50 percent line coverage gate (ratcheting toward 80)
+- CycloneDX 1.5 SBOM
+- Maven Enforcer rules for Java 21+ and Maven 3.9+
+- GitHub Actions CI on every push
+
+---
+
+## Security choices
+
+Most of the security decisions in this project were deliberate, not accidental. A few I want to call out:
+
+**JWT lives in an HttpOnly cookie, not localStorage.** This means JavaScript cannot read the token. You can verify this in DevTools: while authenticated, `document.cookie` returns an empty string. An XSS payload that tries `localStorage.getItem('token')` finds nothing because there's nothing to find. The cookie still travels on every request because the browser sends it automatically with `Cookie:` header. This is structural protection, not defensive coding.
+
+**SameSite=Strict on the cookie** mitigates CSRF without needing a separate CSRF token mechanism. Combined with same-origin policy, cross-site requests cannot carry the session cookie.
+
+**RBAC is enforced server-side, not in the UI.** When an analyst loads the dashboard, the backend queries only the alerts in their visible departments. The frontend doesn't know other alerts exist. An attacker opening DevTools cannot reveal alerts they shouldn't see, because the backend never sent them in the first place.
+
+**Path traversal protection in file storage.** Every read, write, and delete operation in `DiskDocumentStorage` resolves the path and verifies it starts with the configured storage root. Filenames use UUIDs, never user-supplied strings.
+
+**Secrets are externalized.** The JWT signing key, MongoDB credentials, cookie security flags, and seed user passwords all come from environment variables. The repo has `env.example` showing what's needed; the actual `.env` is gitignored.
+
+**23 CVEs patched.** Spring Boot's own dependency BOM lags behind upstream fixes for Tomcat and Log4j. I overrode both to current secure versions (Tomcat 10.1.55, Log4j 2.25.4).
+
+---
+
+## Architecture
 
 ```
 src/main/java/com/carrierfraud/
-├── api/              # REST controllers + RFC 7807 error handling
-├── application/      # Service orchestration, observers
-├── domain/           # Entities, value objects, business rules
-├── infrastructure/   # MongoDB adapters, audit observers
-└── security/         # JWT, RBAC, Spring Security config
+├── domain/          Entities, enums, value objects, business rules
+├── application/     Services, use cases, detection rules (Strategy pattern)
+├── infrastructure/  MongoDB repositories + disk storage implementation
+├── api/             REST controllers, DTOs, exception handlers
+├── security/        Spring Security config, JWT, filter chain, auth controller
+├── audit/           Tamper-resistant audit log
+└── config/          Cookie, CORS, MongoDB index configuration
+
+frontend/
+├── src/types/       TypeScript interfaces matching backend DTOs
+├── src/api/         Axios client + service modules
+├── src/auth/        AuthContext with three-state session machine
+├── src/components/  Reusable components (ProtectedRoute, CommentsThread)
+└── src/pages/       Login, Dashboard, AlertDetail, ClientComplaint, MyComplaints
 ```
 
-**Design Patterns Applied:**
-- **Strategy** — pluggable detection rules
-- **Observer** — alert routing to departments
-- **Repository** — domain-infrastructure boundary
-- **Aggregate Root** — case lifecycle integrity
+---
+
+## Detection rules
+
+Three rules implemented with the Strategy pattern. Open for extension, closed for modification — adding a new rule is a new class implementing the same interface, no changes to the dispatcher.
+
+| Rule | Triggers on | Severity logic | Routes to |
+|------|-------------|----------------|-----------|
+| PaymentReconciliationRule | High unpaid invoice ratio | 0.0 to 1.0 by percent unpaid | MEDIATION |
+| OfferPriceEscalationRule | Offer price more than 50% above baseline | 0.0 to 1.0 by deviation | FRAUD_INVESTIGATION |
+| ComplaintAccumulationRule | Multiple complaint categories accumulating | 0.0 to 1.0 by incident weight | LEGAL or INSURANCE |
+
+Domain validation rejects impossible inputs at the boundary — for example, 25 incidents on 2 offers returns 422 with an RFC 7807 problem document, not a silent miscalculation.
 
 ---
 
-## 🔐 Security & Quality Pipeline
+## Role-based access control
 
-This is a portfolio piece built to demonstrate **DevSecOps fundamentals**, not just CRUD plumbing.
+| Role | Visible departments | Real-world use case |
+|------|---------------------|---------------------|
+| ADMIN | All 11 | Platform administrator |
+| COMPLIANCE | LEGAL, COMPLIANCE_REVIEW, DEPARTMENT_MANAGER | Regulatory review and oversight |
+| ANALYST | MEDIATION, FRAUD_INVESTIGATION, INSURANCE, CUSTOMER_SERVICE | Day-to-day investigation work |
+| CLIENT | None (own cases only) | External carrier submitting a complaint |
 
-Every Maven build runs the following gates — failing any one fails the build:
-
-| Layer | Tool | Threshold | Purpose |
-|---|---|---|---|
-| **Authentication** | Spring Security + JWT (jjwt 0.12.6) | HS256, 60s clock skew, issuer-bound | Stateless RBAC |
-| **Test Coverage** | JaCoCo 0.8.12 | Lines ≥50% (ratcheting toward 80%) | Regression confidence |
-| **SAST** | SpotBugs 4.8 + FindSecBugs 1.13 | effort=Max, threshold=Medium | Static security analysis |
-| **SCA** | OWASP Dependency-Check 10.0 | Fail on CVSS ≥7.0 (High/Critical) | Vulnerable dependency detection |
-| **SBOM** | CycloneDX 2.9 | All formats, on every build | Supply-chain transparency |
-| **Build Reproducibility** | Maven Enforcer 3.5 | Java 21+, Maven 3.9+ | Deterministic builds |
-
-**Documented Security Decisions** (the interview-relevant part):
-- `spotbugs-exclude.xml` — every suppression has written rationale (no blind silencing)
-- `failBuildOnCVSS=7` — fintech-grade gate; blocks all High and Critical CVEs
-- Audit log path is hardcoded constant — eliminates CWE-22 (path traversal) at the design level rather than mitigating it
-- JWT secret has no default value — application fails to start without `JWT_SECRET`, preventing accidental hardcoded secrets reaching prod
-- Authentication events log at WARN with remote IP — enables Wazuh/Splunk SIEM correlation for brute-force detection (MITRE ATT&CK T1110)
-- Generic error messages on auth failures — defends against username enumeration (OWASP A07)
+CLIENT is fundamentally different from the others — they don't have departmental visibility at all. They access only their own submitted complaints, the documents they attached, and the comment thread on those cases. The authorization checks for CLIENT happen at the controller level, comparing `authentication.getName()` against the alert's `createdBy` field.
 
 ---
 
-## 🚀 Quick Start
+## Key endpoints
 
-### Prerequisites
-- Java 21+ (Temurin recommended)
-- Maven 3.9+
-- MongoDB Atlas cluster OR local MongoDB (Docker Compose included)
-- NVD API key for OWASP scan ([request free key](https://nvd.nist.gov/developers/request-an-api-key))
+**Authentication**
+- `POST /api/v1/auth/login` — issues HttpOnly cookie, returns `{username, role}`
+- `GET /api/v1/auth/me` — session bootstrap on page refresh
+- `POST /api/v1/auth/logout` — clears cookie
 
-### 1. Clone and configure environment
+**Alerts (staff)**
+- `GET /api/v1/transactions/alerts` — list filtered by role
+- `GET /api/v1/transactions/alerts/{id}` — single alert with RBAC check
+- `PUT /api/v1/transactions/alerts/{id}/{action}` — workflow actions: accept, investigate, resolve, escalate
+
+**Complaints (client)**
+- `POST /api/v1/complaints` — multipart submission with description and documents
+- `GET /api/v1/complaints/mine` — own cases, ordered by creation date desc
+- `GET /api/v1/complaints/{id}/documents/{docId}` — secure document download with original filename preserved
+
+**Comments**
+- `GET /api/v1/alerts/{id}/comments` — chronological thread
+- `POST /api/v1/alerts/{id}/comments` — add comment
+
+**Notifications**
+- `GET /api/v1/alerts/unread-counts` — map of alertId → unread comment count for the current user
+- `POST /api/v1/alerts/{id}/read` — mark alert as read (fires when AlertDetail opens)
+
+---
+
+## Running locally
+
+**Prerequisites**
+- Java 21 or newer
+- Node 20 or newer
+- MongoDB Atlas connection string (free tier works)
+
+**Backend**
 
 ```bash
-git clone https://github.com/Borgesjesk/Carrier-fraud-sentinel.git
-cd Carrier-fraud-sentinel
 cp env.example .env
-# Edit .env: set MONGODB_URI, JWT_SECRET, SEED_*_PASSWORD, NVD_API_KEY
+# Edit .env with your MONGODB_URI, JWT_SECRET, seed passwords, cookie settings
 set -a; source .env; set +a
-```
-
-### 2. Run
-
-```bash
-export SPRING_PROFILES_ACTIVE=dev
 ./mvnw spring-boot:run
 ```
 
-App is now serving at `http://localhost:8080`.
+The backend runs on http://localhost:8080.
 
-### 3. Test the login flow
-
-```bash
-# Should return 200 + JWT
-curl -X POST http://localhost:8080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d "{\"username\":\"admin\",\"password\":\"$SEED_ADMIN_PASSWORD\"}"
-
-# Should return 401 + RFC 7807 problem detail
-curl -X POST http://localhost:8080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"wrong-password-attempt"}'
-```
-
-### 4. Run the full quality pipeline
+**Frontend**
 
 ```bash
-./mvnw clean verify
+cd frontend
+npm install
+npm run dev
 ```
 
-Reports generated:
-- `target/site/jacoco/index.html` — coverage
-- `target/spotbugsXml.xml` — SAST findings
-- `target/dependency-check-report.html` — CVE scan
-- `target/fraud-sentinel-sbom.json` — CycloneDX SBOM
+The frontend runs on http://localhost:5173. It expects `VITE_API_BASE_URL=http://localhost:8080` in `frontend/.env.local`.
+
+**Demo users**
+
+The dev profile seeds four users on first startup using passwords from environment variables (`SEED_ADMIN_PASSWORD`, `SEED_ANALYST_PASSWORD`, `SEED_COMPLIANCE_PASSWORD`, `SEED_CLIENT_PASSWORD`):
+
+- `admin` — ADMIN role
+- `analyst` — ANALYST role
+- `compliance` — COMPLIANCE role
+- `client1` — CLIENT role
 
 ---
 
-## 🛠️ Tech Stack
+## Testing
 
-**Core:** Java 21 · Spring Boot 3.5.13 · Spring Security 6 · MongoDB · Maven
-**Security:** jjwt 0.12.6 · Spring Security · BCrypt (strength 12)
-**Testing:** JUnit 5 · Mockito · Testcontainers · MockMvc
-**DevSecOps:** JaCoCo · SpotBugs · FindSecBugs · OWASP Dependency-Check · CycloneDX
+```bash
+./mvnw test                                  # unit + integration tests
+./mvnw verify -P security                    # full DevSecOps pipeline
+./mvnw org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom  # generate SBOM
+```
 
----
-
-## 📅 Coverage Ratchet
-
-The 50% coverage gate is a starting line, not the target. Each sprint raises it:
-
-- **Sprint 5 (current):** ≥50% — security layer, domain entities
-- **Sprint 6:** ≥65% — infrastructure adapters
-- **Sprint 7:** ≥75% — REST controllers and integration tests
-- **Sprint 8 target:** ≥80% — production-ready
+Coverage gate is currently 50 percent on the `application` and `domain` packages, ratcheting toward 80.
 
 ---
 
-## 🛣️ Roadmap
+## What's next
 
-- [ ] ML layer — predictive risk scoring from historical case outcomes
-- [ ] Carrier API — partner-facing webhooks for real-time alert delivery
-- [ ] Refresh token mechanism + JTI claim for token revocation
-- [ ] Rate limiting on `/api/v1/auth/**` (Bucket4j)
-- [ ] Distributed tracing — MDC `traceId` enrichment across logs
+Implemented as the bootcamp deliverable, but realistic next steps if I keep building:
 
----
-
-## 👤 Built By
-
-**Jess Borges** — transitioning into SOC / DevSecOps after 6+ years investigating freight fraud at Alpega Group.
-
-- 🎓 Java Backend Bootcamp (IT Academy Barcelona, 2026)
-- 🎓 IFCT0109 Cybersecurity Certification (Ironhack Barcelona, 500h)
-- 🎓 Google Cybersecurity Certificate
-- 🛡️ TryHackMe SOC Level 1 path · Wazuh SIEM home lab · MITRE ATT&CK mapping
-
-[LinkedIn](https://linkedin.com/in/jessborgesb) · [GitHub](https://github.com/Borgesjesk)
+- WebSocket or SSE for real-time push notifications (currently 30-second polling on the client case list)
+- Alert reassignment between departments with audit trail
+- Status change timeline on the AlertDetail page
+- E2E tests with Playwright
+- Production deployment via Docker Compose (Dockerfile already in repo)
+- Migrate document storage from local disk to S3 or MinIO (the `DocumentStorage` interface is already set up for this)
 
 ---
 
-*FraudSentinel is a portfolio project and is not affiliated with any commercial freight-exchange platform.*
+## About me
+
+I'm Jess Borges — Spanish-Brazilian, six years in fraud investigation and AML compliance at a European freight exchange, now transitioning into cybersecurity through the Ironhack IFCT0109 program. My goal is SOC Analyst then DevSecOps.
+
+This project sits at the intersection of where I came from and where I'm going.
+
+---
+
+## License
+
+MIT
