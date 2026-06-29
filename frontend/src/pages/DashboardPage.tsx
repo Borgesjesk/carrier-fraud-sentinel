@@ -22,15 +22,27 @@ export function DashboardPage() {
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-      alertService.getAll()
-        .then((data) => setAlerts(data))
-        .catch(() => setError('Failed to load alerts. Please refresh.'))
-        .finally(() => setIsLoading(false));
+      let cancelled = false;
 
-      alertReadService.unreadCounts()
-        .then(setUnreadCounts)
-        .catch(() => {});
-  }, []);
+      const load = () => {
+        alertService.getAll()
+          .then((data) => { if (!cancelled) setAlerts(data); })
+          .catch(() => { if (!cancelled) setError('Failed to load alerts. Please refresh.'); })
+          .finally(() => { if (!cancelled) setIsLoading(false); });
+
+        alertReadService.unreadCounts()
+          .then((counts) => { if (!cancelled) setUnreadCounts(counts); })
+          .catch(() => {});
+      };
+
+      load();
+      const intervalId = setInterval(load, 10_000);
+
+      return () => {
+        cancelled = true;
+        clearInterval(intervalId);
+      };
+    }, []);
 
   const stats = {
     total: alerts.length,
