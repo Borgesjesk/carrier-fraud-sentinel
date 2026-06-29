@@ -4,6 +4,7 @@ import { ArrowLeft, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Search, XCi
 import { useAuth } from '../auth/AuthContext';
 import { CommentsThread } from '../components/CommentsThread';
 import { alertService } from '../api/alertService';
+import { alertReadService } from '../api/alertReadService';
 import type { Alert, Severity, AlertStatus } from '../types/Alert';
 
 const SEVERITY_STYLES: Record<Severity, string> = {
@@ -33,12 +34,15 @@ export function AlertDetailPage() {
   const [actionInFlight, setActionInFlight] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!alertId) return;
-    alertService.getById(alertId)
-      .then(setAlert)
-      .catch(() => setError('Alert not found or you do not have permission to view it.'))
-      .finally(() => setIsLoading(false));
-  }, [alertId]);
+      if (!alertId) return;
+      alertService.getById(alertId)
+        .then(setAlert)
+        .catch(() => setError('Alert not found or you do not have permission to view it.'))
+        .finally(() => setIsLoading(false));
+
+      alertReadService.markAsRead(alertId).catch(() => {
+      });
+    }, [alertId]);
 
   const runAction = async (label: string, fn: () => Promise<Alert>) => {
     setActionInFlight(label);
@@ -124,6 +128,7 @@ export function AlertDetailPage() {
               <DetailCard label="Created" value={formatDate(alert.createdDate)} />
             </div>
 
+            {user?.role !== 'CLIENT' && (
             <section className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
               <h2 className="text-sm font-medium text-slate-200 mb-4 uppercase tracking-wide">Workflow actions</h2>
               <div className="flex flex-wrap gap-3">
@@ -136,6 +141,7 @@ export function AlertDetailPage() {
                 State transitions: UNASSIGNED → ACCEPTED → IN_PROGRESS → RESOLVED (or ESCALATED at any time)
               </p>
             </section>
+            )}
 
             <div className="mt-6">
               <CommentsThread alertId={alert.alertId} />

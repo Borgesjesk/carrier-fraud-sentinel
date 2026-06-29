@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ShieldCheck, LogOut, Loader2, AlertCircle, Plus, FileText } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { complaintService } from '../api/complaintService';
+import { alertReadService } from '../api/alertReadService';
+import { MessageCircle } from 'lucide-react';
 import type { Alert, AlertStatus } from '../types/Alert';
 
 const STATUS_STYLES: Record<AlertStatus, string> = {
@@ -22,15 +24,20 @@ export function MyComplaintsPage() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     let cancelled = false;
 
     const load = () => {
-      complaintService.myComplaints()
-        .then((data) => { if (!cancelled) setAlerts(data); })
-        .catch(() => { if (!cancelled) setError('Failed to load your cases.'); })
-        .finally(() => { if (!cancelled) setIsLoading(false); });
+          complaintService.myComplaints()
+            .then((data) => { if (!cancelled) setAlerts(data); })
+            .catch(() => { if (!cancelled) setError('Failed to load your cases.'); })
+            .finally(() => { if (!cancelled) setIsLoading(false); });
+
+          alertReadService.unreadCounts()
+            .then((counts) => { if (!cancelled) setUnreadCounts(counts); })
+            .catch(() => {});
     };
 
     load();
@@ -115,7 +122,11 @@ export function MyComplaintsPage() {
         {!isLoading && !error && alerts.length > 0 && (
           <div className="space-y-3">
             {alerts.map((alert) => (
-              <div key={alert.alertId} className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 hover:border-slate-700 transition">
+                <Link
+                  key={alert.alertId}
+                  to={`/alerts/${alert.alertId}`}
+                  className="block bg-slate-900/50 border border-slate-800 rounded-lg p-4 hover:border-sky-500/50 transition"
+                >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-slate-500 font-mono mb-1">{alert.alertId}</p>
@@ -125,13 +136,19 @@ export function MyComplaintsPage() {
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className={`px-2 py-1 text-xs font-medium rounded ${STATUS_STYLES[alert.status]}`}>
-                      {alert.status}
-                    </span>
-                    <span className="text-xs text-slate-500">{formatDate(alert.createdDate)}</span>
+                      {unreadCounts[alert.alertId] > 0 && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded">
+                            <MessageCircle className="w-3 h-3" />
+                            {unreadCounts[alert.alertId]} new
+                          </span>
+                      )}
+                      <span className={`px-2 py-1 text-xs font-medium rounded ${STATUS_STYLES[alert.status]}`}>
+                        {alert.status}
+                      </span>
+                      <span className="text-xs text-slate-500">{formatDate(alert.createdDate)}</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

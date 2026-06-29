@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ShieldCheck, LogOut, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { alertService } from '../api/alertService';
+import { alertReadService } from '../api/alertReadService';
+import { MessageCircle } from 'lucide-react';
 import type { Alert, Severity } from '../types/Alert';
 
 const SEVERITY_STYLES: Record<Severity, string> = {
@@ -17,12 +19,17 @@ export function DashboardPage() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    alertService.getAll()
-      .then((data) => setAlerts(data))
-      .catch(() => setError('Failed to load alerts. Please refresh.'))
-      .finally(() => setIsLoading(false));
+      alertService.getAll()
+        .then((data) => setAlerts(data))
+        .catch(() => setError('Failed to load alerts. Please refresh.'))
+        .finally(() => setIsLoading(false));
+
+      alertReadService.unreadCounts()
+        .then(setUnreadCounts)
+        .catch(() => {});
   }, []);
 
   const stats = {
@@ -117,10 +124,18 @@ export function DashboardPage() {
                   {alerts.map((alert) => (
                     <tr key={alert.alertId} className="hover:bg-slate-900/30 transition">
                       <td className="px-4 py-3 font-mono text-xs">
-                                              <Link to={`/alerts/${alert.alertId}`} className="text-sky-400 hover:text-sky-300 transition">
-                                                {alert.alertId.slice(0, 24)}...
-                                              </Link>
-                                            </td>
+                        <div className="flex items-center gap-2">
+                          <Link to={`/alerts/${alert.alertId}`} className="text-sky-400 hover:text-sky-300 transition">
+                            {alert.alertId.slice(0, 24)}...
+                          </Link>
+                          {unreadCounts[alert.alertId] > 0 && (
+                              <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded">
+                                <MessageCircle className="w-3 h-3" />
+                                {unreadCounts[alert.alertId]}
+                              </span>
+                            )}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-slate-200">{alert.carrierName}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 text-xs font-medium rounded border ${SEVERITY_STYLES[alert.severity]}`}>
