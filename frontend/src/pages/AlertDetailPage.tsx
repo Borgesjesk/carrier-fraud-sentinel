@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Search, XCircle, ArrowUpCircle } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Search, XCircle, ArrowUpCircle, FileText, Download } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { CommentsThread } from '../components/CommentsThread';
 import { alertService } from '../api/alertService';
@@ -130,6 +130,44 @@ export function AlertDetailPage() {
               <DetailCard label="Assigned department" value={alert.assignedDepartment} />
               <DetailCard label="Created" value={formatDate(alert.createdDate)} />
             </div>
+
+                        {alert.description && (
+              <section className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 mb-6">
+                <h2 className="text-sm font-medium text-slate-200 mb-3 uppercase tracking-wide">Description</h2>
+                <p className="text-sm text-slate-300 whitespace-pre-wrap">{alert.description}</p>
+                {alert.createdBy && (
+                  <p className="text-xs text-slate-500 mt-3">Submitted by {alert.createdBy}</p>
+                )}
+              </section>
+            )}
+
+            {alert.documents && alert.documents.length > 0 && (
+              <section className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 mb-6">
+                <h2 className="text-sm font-medium text-slate-200 mb-3 uppercase tracking-wide">
+                  Documents ({alert.documents.length})
+                </h2>
+                <ul className="space-y-2">
+                  {alert.documents.map((doc) => (
+                    <li key={doc.documentId} className="flex items-center gap-3 px-3 py-2 bg-slate-800/30 border border-slate-800 rounded-lg">
+                      <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-slate-200 truncate">{doc.originalFilename}</div>
+                        <div className="text-xs text-slate-500">{(doc.sizeBytes / 1024).toFixed(1)} KB · {doc.contentType}</div>
+                      </div>
+                      <a
+                        href={`${import.meta.env.VITE_API_BASE_URL}/api/v1/complaints/${alert.alertId}/documents/${doc.documentId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs text-sky-300 hover:text-sky-200 hover:bg-sky-500/10 rounded-lg transition"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {user?.role !== 'CLIENT' && (
             <section className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">

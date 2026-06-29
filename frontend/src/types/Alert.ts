@@ -8,6 +8,15 @@ export type AlertStatus =
   | 'RESOLVED'
   | 'ESCALATED';
 
+export interface DocumentMetadata {
+  documentId: string;
+  originalFilename: string;
+  storedPath: string;
+  contentType: string;
+  sizeBytes: number;
+  uploadedAt: string;
+}
+
 export interface Alert {
   alertId: string;
   carrierName: string;
@@ -17,4 +26,7 @@ export interface Alert {
   assignedDepartment: string;
   status: AlertStatus;
   createdDate: string;
+  description?: string;
+  documents?: DocumentMetadata[];
+  createdBy?: string;
 }

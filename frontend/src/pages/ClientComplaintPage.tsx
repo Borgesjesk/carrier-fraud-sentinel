@@ -225,11 +225,20 @@ export function ClientComplaintPage() {
           )}
 
           {success && (
-            <div className="flex items-start gap-2 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-emerald-300">{success}</p>
-            </div>
-          )}
+                      <div className="flex items-start gap-2 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm text-emerald-300">{success}</p>
+                          <button
+                            type="button"
+                            onClick={() => navigate('/complaints/mine')}
+                            className="text-sm text-emerald-300 hover:text-emerald-200 underline mt-1"
+                          >
+                            View my cases →
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
           <button
             type="submit"
