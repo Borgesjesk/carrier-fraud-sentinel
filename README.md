@@ -4,6 +4,24 @@ A carrier fraud detection platform with role-based access control, multi-channel
 
 Built as the final project for the IT Academy Barcelona Java Backend bootcamp. The design comes directly from six years of fraud investigation work at a European freight exchange, where I dealt daily with the patterns this system detects: carriers gaming payment terms, escalating offer prices, and accumulating complaints across multiple categories.
 
+
+## Screenshots
+
+### Login
+![Login page](docs/screenshots/01-login.png)
+
+### Staff dashboard (RBAC-filtered alerts)
+![Dashboard](docs/screenshots/02-dashboard-admin.png)
+
+### Alert detail with workflow, documents, and comments
+![Alert detail](docs/screenshots/03-alert-detail.png)
+
+### Client complaint form (with document categories)
+![Client form](docs/screenshots/04-client-form.png)
+
+### Client case list with unread notifications
+![My cases](docs/screenshots/05-my-cases.png)
+
 ---
 
 ## What it does
