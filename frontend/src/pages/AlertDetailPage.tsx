@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { CommentsThread } from '../components/CommentsThread';
 import { alertService } from '../api/alertService';
 import { alertReadService } from '../api/alertReadService';
+import { NotesThread } from '../components/NotesThread';
 import type { Alert, Severity, AlertStatus } from '../types/Alert';
 
 const SEVERITY_STYLES: Record<Severity, string> = {
@@ -220,9 +221,15 @@ export function AlertDetailPage() {
             </section>
             )}
 
-            <div className="mt-6">
-              <CommentsThread alertId={alert.alertId} />
-            </div>
+            {user?.role !== 'CLIENT' && (
+                          <div className="mt-6">
+                            <NotesThread alertId={alert.alertId} />
+                          </div>
+                        )}
+
+                        <div className="mt-6">
+                          <CommentsThread alertId={alert.alertId} />
+                        </div>
           </>
         )}
               </main>

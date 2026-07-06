@@ -71,6 +71,7 @@ public class SecurityConfig {
                                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                                 .requestMatchers("/api/v1/complaints", "/api/v1/complaints/mine").hasRole("CLIENT")
                                 .requestMatchers("/api/v1/alerts/*/comments/**").authenticated()
+                                .requestMatchers("/api/v1/alerts/*/notes/**").authenticated()
                                 .requestMatchers("/api/v1/alerts/*/read", "/api/v1/alerts/unread-counts").authenticated()
                                 .requestMatchers("/api/v1/complaints/*/documents/*").authenticated()
                                 .requestMatchers("/actuator/**").hasRole("ADMIN")
