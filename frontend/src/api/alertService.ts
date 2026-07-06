@@ -11,7 +11,7 @@ export const alertService = {
     (await apiClient.get<Alert>(`${BASE}/alerts/${alertId}`)).data,
 
   accept: async (alertId: string, assignee: string): Promise<Alert> =>
-    (await apiClient.put<Alert>(`${BASE}/alerts/${alertId}/accept`, { assignee })).data,
+    (await apiClient.put<Alert>(`${BASE}/alerts/${alertId}/accept`, { person: assignee })).data,
 
   investigate: async (alertId: string): Promise<Alert> =>
     (await apiClient.put<Alert>(`${BASE}/alerts/${alertId}/investigate`, {})).data,

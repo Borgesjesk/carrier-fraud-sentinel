@@ -28,6 +28,9 @@ public class RiskAlert {
     private LocalDateTime resolvedDate;
     private String resolutionNotes;
     private String escalatedTo;
+    private LocalDateTime lastTransferAt;
+    private String lastTransferBy;
+    private String lastTransferFromDept;
 
     private String description;
     private java.util.List<DocumentMetadata> documents = new java.util.ArrayList<>();
@@ -228,12 +231,15 @@ public class RiskAlert {
         this.resolvedDate = LocalDateTime.now();
     }
 
-    public void transferTo(Department targetDepartment) {
+    public void transferTo(Department targetDepartment, String transferredBy) {
         if (assignmentStatus == AlertAssignmentStatus.RESOLVED) {
             throw new IllegalArgumentException(
                     String.format("Cannot transfer resolved alert %s", alertId));
         }
         Objects.requireNonNull(targetDepartment, "Target department cannot be null");
+        this.lastTransferFromDept = this.assignedDepartment.toString();
+        this.lastTransferBy = transferredBy;
+        this.lastTransferAt = LocalDateTime.now();
         this.assignedDepartment = targetDepartment;
         this.assignmentStatus = AlertAssignmentStatus.UNASSIGNED;
         this.assignedTo = null;
@@ -344,4 +350,8 @@ public class RiskAlert {
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
     }
+
+    public LocalDateTime getLastTransferAt() { return lastTransferAt; }
+    public String getLastTransferBy() { return lastTransferBy; }
+    public String getLastTransferFromDept() { return lastTransferFromDept; }
 }

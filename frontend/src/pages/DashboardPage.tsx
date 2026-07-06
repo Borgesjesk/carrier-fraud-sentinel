@@ -22,6 +22,7 @@ export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned'>('all');
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const previousCountsRef = useRef<Record<string, number>>({});
@@ -66,6 +67,12 @@ export function DashboardPage() {
         clearInterval(intervalId);
       };
     }, []);
+
+  const filteredAlerts = alerts.filter((alert) => {
+    if (filter === 'mine') return alert.assignedTo === user?.username;
+    if (filter === 'unassigned') return alert.status === 'UNASSIGNED';
+    return true;
+  });
 
   const stats = {
     total: alerts.length,
@@ -133,7 +140,34 @@ export function DashboardPage() {
 
         {/* Alerts table */}
         <section>
-          <h2 className="text-base font-medium text-slate-200 mb-4">Recent alerts</h2>
+          <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-base font-medium text-slate-200">Recent alerts</h2>
+                      <div className="flex gap-1 bg-slate-900/50 border border-slate-800 rounded-lg p-1">
+                        {(['all', 'unassigned', 'mine'] as const).map((f) => (
+                          <button
+                            key={f}
+                            onClick={() => setFilter(f)}
+                            className={`px-3 py-1 text-xs font-medium rounded transition ${
+                              filter === f
+                                ? 'bg-sky-500/20 text-sky-300'
+                                : 'text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            {f === 'all' ? 'All' : f === 'unassigned' ? 'Unassigned' : 'Mine'}
+                            {f === 'unassigned' && alerts.filter((a) => a.status === 'UNASSIGNED').length > 0 && (
+                              <span className="ml-1 text-slate-500">
+                                ({alerts.filter((a) => a.status === 'UNASSIGNED').length})
+                              </span>
+                            )}
+                            {f === 'mine' && alerts.filter((a) => a.assignedTo === user?.username).length > 0 && (
+                              <span className="ml-1 text-slate-500">
+                                ({alerts.filter((a) => a.assignedTo === user?.username).length})
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
           {isLoading && (
             <div className="flex items-center gap-2 text-slate-400 py-12 justify-center">
@@ -170,7 +204,7 @@ export function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
-                  {alerts.map((alert) => (
+                  {filteredAlerts.map((alert) => (
                     <tr key={alert.alertId} className="hover:bg-slate-900/30 transition">
                       <td className="px-4 py-3 font-mono text-xs">
                         <div className="flex items-center gap-2">

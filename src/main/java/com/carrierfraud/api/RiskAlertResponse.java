@@ -18,7 +18,11 @@ public record RiskAlertResponse(
         LocalDateTime createdDate,
         String description,
         List<DocumentMetadata> documents,
-        String createdBy
+        String createdBy,
+        String assignedTo,
+        LocalDateTime lastTransferAt,
+        String lastTransferBy,
+        String lastTransferFromDept
 ) {
     public static RiskAlertResponse fromDomainAlert(RiskAlert alert) {
         return new RiskAlertResponse(
@@ -33,7 +37,11 @@ public record RiskAlertResponse(
                 alert.getCreatedDate(),
                 alert.getDescription(),
                 alert.getDocuments(),
-                alert.getCreatedBy()
+                alert.getCreatedBy(),
+                alert.getAssignedTo(),
+                alert.getLastTransferAt(),
+                alert.getLastTransferBy(),
+                alert.getLastTransferFromDept()
         );
     }
 

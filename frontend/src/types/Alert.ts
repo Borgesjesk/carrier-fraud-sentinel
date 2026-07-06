@@ -33,4 +33,8 @@ export interface Alert {
   description?: string;
   documents?: DocumentMetadata[];
   createdBy?: string;
+  assignedTo?: string;
+  lastTransferAt?: string;
+  lastTransferBy?: string;
+  lastTransferFromDept?: string;
 }

@@ -143,11 +143,20 @@ export function AlertDetailPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-8">
-              <DetailCard label="Risk score" value={(alert.riskScore * 100).toFixed(0) + '%'} />
-              <DetailCard label="Triggered rule" value={alert.triggeredRules} />
-              <DetailCard label="Assigned department" value={alert.assignedDepartment} />
-              <DetailCard label="Created" value={formatDate(alert.createdDate)} />
-            </div>
+                          <DetailCard label="Risk score" value={(alert.riskScore * 100).toFixed(0) + '%'} />
+                          <DetailCard label="Triggered rule" value={alert.triggeredRules} />
+                          <DetailCard label="Assigned department" value={alert.assignedDepartment} />
+                          <DetailCard label="Created" value={formatDate(alert.createdDate)} />
+                          {alert.assignedTo && (
+                            <DetailCard label="Assigned to" value={alert.assignedTo} />
+                          )}
+                          {alert.lastTransferAt && (
+                            <DetailCard
+                              label="Last transfer"
+                              value={`${alert.lastTransferBy} · ${alert.lastTransferFromDept} → ${alert.assignedDepartment} · ${formatDate(alert.lastTransferAt)}`}
+                            />
+                          )}
+                        </div>
 
                         {alert.description && (
               <section className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 mb-6">

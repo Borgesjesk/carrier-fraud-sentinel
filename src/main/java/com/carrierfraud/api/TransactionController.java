@@ -73,6 +73,12 @@ public class TransactionController {
                 ? alertRepository.findAll()
                 : alertRepository.findByAssignedDepartmentIn(visibleDepartments);
 
+        alerts = alerts.stream()
+                .sorted(java.util.Comparator
+                        .comparingInt((RiskAlert a) -> statusPriority(a.getAssignmentStatus()))
+                        .thenComparing(RiskAlert::getCreatedDate, java.util.Comparator.reverseOrder()))
+                .toList();
+
         auditService.record("LIST_ALERTS", "RiskAlert", null,
                 "role=" + role + " count=" + alerts.size());
 
@@ -209,7 +215,7 @@ public class TransactionController {
         }
 
         com.carrierfraud.domain.Department fromDept = alert.getAssignedDepartment();
-        alert.transferTo(targetDept);
+        alert.transferTo(targetDept, authentication.getName());
 
         alertRepository.save(alert);
 
@@ -233,5 +239,14 @@ public class TransactionController {
                 .findFirst()
                 .map(Role::valueOf)
                 .orElseThrow(() -> new AccessDeniedException("No role assigned to authenticated user"));
+    }
+
+    private int statusPriority(com.carrierfraud.domain.AlertAssignmentStatus status) {
+        return switch (status) {
+            case UNASSIGNED -> 0;
+            case ASSIGNED, ACCEPTED, IN_PROGRESS -> 1;
+            case ESCALATED -> 2;
+            case RESOLVED, DISMISSED -> 3;
+        };
     }
 }
