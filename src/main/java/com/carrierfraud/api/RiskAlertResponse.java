@@ -14,6 +14,7 @@ public record RiskAlertResponse(
         String severity,
         String assignedDepartment,
         String status,
+        String clientVisibleStatus,
         LocalDateTime createdDate,
         String description,
         List<DocumentMetadata> documents,
@@ -28,10 +29,18 @@ public record RiskAlertResponse(
                 alert.getSeverity().toString(),
                 alert.getAssignedDepartment().toString(),
                 alert.getAssignmentStatus().toString(),
+                computeClientVisibleStatus(alert),
                 alert.getCreatedDate(),
                 alert.getDescription(),
                 alert.getDocuments(),
                 alert.getCreatedBy()
         );
+    }
+
+    private static String computeClientVisibleStatus(RiskAlert alert) {
+        String status = alert.getAssignmentStatus().toString();
+        if ("RESOLVED".equals(status)) return "RESOLVED";
+        if (alert.getAcceptedDate() != null) return "IN_PROGRESS";
+        return status;
     }
 }

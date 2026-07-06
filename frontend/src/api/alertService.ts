@@ -19,6 +19,9 @@ export const alertService = {
   resolve: async (alertId: string, resolution: string): Promise<Alert> =>
     (await apiClient.put<Alert>(`${BASE}/alerts/${alertId}/resolve`, { resolution })).data,
 
+  transfer: async (alertId: string, targetDepartment: string, reason: string): Promise<Alert> =>
+    (await apiClient.put<Alert>(`${BASE}/alerts/${alertId}/transfer`, { targetDepartment, reason })).data,
+
   escalate: async (alertId: string, reason: string): Promise<Alert> =>
     (await apiClient.put<Alert>(`${BASE}/alerts/${alertId}/escalate`, { reason })).data,
 };

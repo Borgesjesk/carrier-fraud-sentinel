@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Search, XCircle, ArrowUpCircle, FileText, Download } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Search, XCircle, ArrowUpCircle, ArrowRightLeft, FileText, Download } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { CommentsThread } from '../components/CommentsThread';
 import { alertService } from '../api/alertService';
@@ -32,6 +32,9 @@ export function AlertDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionInFlight, setActionInFlight] = useState<string | null>(null);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferTarget, setTransferTarget] = useState('LEGAL');
+  const [transferReason, setTransferReason] = useState('');
 
   useEffect(() => {
       if (!alertId) return;
@@ -63,6 +66,21 @@ export function AlertDetailPage() {
     const resolution = prompt('Resolution summary:');
     if (!resolution) return;
     runAction('Resolve', () => alertService.resolve(alertId!, resolution));
+  };
+
+   const handleTransfer = async () => {
+    if (!transferReason.trim()) return;
+    setActionInFlight('Transfer');
+    try {
+      const updated = await alertService.transfer(alertId!, transferTarget, transferReason.trim());
+      setAlert(updated);
+      setShowTransferModal(false);
+      setTransferReason('');
+    } catch {
+      setError('Failed to transfer.');
+    } finally {
+      setActionInFlight(null);
+    }
   };
   const handleEscalate = () => {
     const reason = prompt('Escalation reason:');
@@ -118,8 +136,8 @@ export function AlertDetailPage() {
                 <span className={`px-3 py-1 text-xs font-medium rounded border ${SEVERITY_STYLES[alert.severity]}`}>
                   {alert.severity}
                 </span>
-                <span className={`px-3 py-1 text-xs font-medium rounded ${STATUS_STYLES[alert.status]}`}>
-                  {alert.status}
+                <span className={`px-3 py-1 text-xs font-medium rounded ${STATUS_STYLES[user?.role === 'CLIENT' ? alert.clientVisibleStatus : alert.status]}`}>
+                                  {user?.role === 'CLIENT' ? alert.clientVisibleStatus : alert.status}
                 </span>
               </div>
             </div>
@@ -184,6 +202,7 @@ export function AlertDetailPage() {
                 <ActionButton icon={CheckCircle2} label="Accept" onClick={handleAccept} inFlight={actionInFlight} disabled={alert.status !== 'UNASSIGNED'} />
                 <ActionButton icon={Search} label="Investigate" onClick={handleInvestigate} inFlight={actionInFlight} disabled={alert.status !== 'ACCEPTED'} />
                 <ActionButton icon={CheckCircle2} label="Resolve" onClick={handleResolve} inFlight={actionInFlight} disabled={alert.status === 'RESOLVED' || alert.status === 'UNASSIGNED'} variant="success" />
+                <ActionButton icon={ArrowRightLeft} label="Transfer" onClick={() => setShowTransferModal(true)} inFlight={actionInFlight} disabled={alert.status === 'RESOLVED'} />
                 <ActionButton icon={ArrowUpCircle} label="Escalate" onClick={handleEscalate} inFlight={actionInFlight} disabled={alert.status === 'RESOLVED'} variant="warning" />
               </div>
               <p className="text-xs text-slate-500 mt-4">
@@ -197,10 +216,62 @@ export function AlertDetailPage() {
             </div>
           </>
         )}
-      </main>
-    </div>
-  );
-}
+              </main>
+
+              {showTransferModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                  <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
+                    <h3 className="text-lg font-semibold text-slate-100 mb-4">Transfer alert</h3>
+
+                    <label className="block text-xs font-medium text-slate-300 mb-2 uppercase tracking-wide">
+                      Target department
+                    </label>
+                    <select
+                      value={transferTarget}
+                      onChange={(e) => setTransferTarget(e.target.value)}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 mb-4 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    >
+                      <option value="LEGAL">Legal</option>
+                      <option value="INSURANCE">Insurance</option>
+                      <option value="MEDIATION">Mediation</option>
+                      <option value="FRAUD_INVESTIGATION">Fraud investigation</option>
+                      <option value="CUSTOMER_SERVICE">Customer service</option>
+                      <option value="COMPLIANCE_REVIEW">Compliance review</option>
+                      <option value="DEPARTMENT_MANAGER">Department manager</option>
+                    </select>
+
+                    <label className="block text-xs font-medium text-slate-300 mb-2 uppercase tracking-wide">
+                      Reason
+                    </label>
+                    <textarea
+                      value={transferReason}
+                      onChange={(e) => setTransferReason(e.target.value)}
+                      rows={3}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 mb-4 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
+                      placeholder="Why is this being transferred?"
+                    />
+
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => { setShowTransferModal(false); setTransferReason(''); }}
+                        className="px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 rounded-lg transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleTransfer}
+                        disabled={!transferReason.trim() || actionInFlight === 'Transfer'}
+                        className="px-4 py-2 text-sm font-medium bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 rounded-lg transition disabled:opacity-30"
+                      >
+                        {actionInFlight === 'Transfer' ? 'Transferring...' : 'Transfer'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
 
 function DetailCard({ label, value }: { label: string; value: string }) {
   return (

@@ -25,14 +25,17 @@ public class TransactionController {
     private final FraudDetectionService fraudDetectionService;
     private final RiskAlertRepository alertRepository;
     private final AuditService auditService;
+    private final com.carrierfraud.infrastructure.CommentRepository commentRepository;
 
     public TransactionController(
             FraudDetectionService fraudDetectionService,
             RiskAlertRepository alertRepository,
-            AuditService auditService) {
+            AuditService auditService,
+            com.carrierfraud.infrastructure.CommentRepository commentRepository) {
         this.fraudDetectionService = Objects.requireNonNull(fraudDetectionService);
         this.alertRepository = Objects.requireNonNull(alertRepository);
         this.auditService = Objects.requireNonNull(auditService);
+        this.commentRepository = Objects.requireNonNull(commentRepository);
     }
 
     @PostMapping("/analyze")
@@ -173,6 +176,51 @@ public class TransactionController {
 
         auditService.record("ESCALATE_ALERT", "RiskAlert", alertId,
                 "Escalated to " + dept);
+
+        return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(alert));
+    }
+
+    @PutMapping("/alerts/{alertId}/transfer")
+    public ResponseEntity<RiskAlertResponse> transferAlert(
+            @PathVariable String alertId,
+            @RequestBody java.util.Map<String, String> body,
+            Authentication authentication) {
+
+        RiskAlert alert = alertRepository.findByAlertId(alertId)
+                .orElseThrow(() -> new com.carrierfraud.domain.BusinessRuleException(
+                        "Alert not found: " + alertId));
+
+        Role role = extractRole(authentication);
+        if (role == Role.CLIENT) {
+            throw new AccessDeniedException("Clients cannot transfer alerts");
+        }
+
+        String targetDeptName = body.get("targetDepartment");
+        String reason = body.getOrDefault("reason", "No reason provided");
+        if (targetDeptName == null || targetDeptName.isBlank()) {
+            throw new com.carrierfraud.domain.BusinessRuleException("targetDepartment is required");
+        }
+
+        com.carrierfraud.domain.Department targetDept;
+        try {
+            targetDept = com.carrierfraud.domain.Department.valueOf(targetDeptName);
+        } catch (IllegalArgumentException ex) {
+            throw new com.carrierfraud.domain.BusinessRuleException("Invalid department: " + targetDeptName);
+        }
+
+        com.carrierfraud.domain.Department fromDept = alert.getAssignedDepartment();
+        alert.transferTo(targetDept);
+
+        alertRepository.save(alert);
+
+        String autoComment = "Case transferred from " + fromDept + " to " + targetDept +
+                " by " + authentication.getName() + ". Reason: " + reason;
+        com.carrierfraud.domain.Comment comment = new com.carrierfraud.domain.Comment(
+                alertId, authentication.getName(), role.toString(), autoComment);
+        commentRepository.save(comment);
+
+        auditService.record("TRANSFER_ALERT", "RiskAlert", alertId,
+                "from=" + fromDept + " to=" + targetDept + " by=" + authentication.getName());
 
         return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(alert));
     }

@@ -28,6 +28,7 @@ export interface Alert {
   severity: Severity;
   assignedDepartment: string;
   status: AlertStatus;
+  clientVisibleStatus: AlertStatus;
   createdDate: string;
   description?: string;
   documents?: DocumentMetadata[];

@@ -175,8 +175,8 @@ export function MyComplaintsPage() {
                             {unreadCounts[alert.alertId]} new
                           </span>
                       )}
-                      <span className={`px-2 py-1 text-xs font-medium rounded ${STATUS_STYLES[alert.status]}`}>
-                        {alert.status}
+                      <span className={`px-2 py-1 text-xs font-medium rounded ${STATUS_STYLES[alert.clientVisibleStatus]}`}>
+                        {alert.clientVisibleStatus}
                       </span>
                       <span className="text-xs text-slate-500">{formatDate(alert.createdDate)}</span>
                   </div>

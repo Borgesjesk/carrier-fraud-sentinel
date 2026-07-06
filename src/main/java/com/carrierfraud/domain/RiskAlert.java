@@ -1,5 +1,6 @@
 package com.carrierfraud.domain;
 
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.annotation.Id;
 
 import java.util.Objects;
@@ -31,6 +32,47 @@ public class RiskAlert {
     private String description;
     private java.util.List<DocumentMetadata> documents = new java.util.ArrayList<>();
     private String createdBy;
+
+    @PersistenceCreator
+    public RiskAlert(
+            String alertId,
+            String carrierName,
+            double riskScore,
+            String triggeredRuleNames,
+            LocalDateTime createdDate,
+            AlertSeverity severity,
+            Department assignedDepartment,
+            AlertAssignmentStatus assignmentStatus,
+            String assignedTo,
+            String acceptedBy,
+            LocalDateTime acceptedDate,
+            LocalDateTime slaDeadline,
+            LocalDateTime resolvedDate,
+            String resolutionNotes,
+            String escalatedTo,
+            String description,
+            java.util.List<DocumentMetadata> documents,
+            String createdBy
+    ) {
+        this.alertId = alertId;
+        this.carrierName = carrierName;
+        this.riskScore = riskScore;
+        this.triggeredRuleNames = triggeredRuleNames;
+        this.createdDate = createdDate;
+        this.severity = severity;
+        this.assignedDepartment = assignedDepartment;
+        this.assignmentStatus = assignmentStatus;
+        this.assignedTo = assignedTo;
+        this.acceptedBy = acceptedBy;
+        this.acceptedDate = acceptedDate;
+        this.slaDeadline = slaDeadline;
+        this.resolvedDate = resolvedDate;
+        this.resolutionNotes = resolutionNotes;
+        this.escalatedTo = escalatedTo;
+        this.description = description;
+        this.documents = documents != null ? documents : new java.util.ArrayList<>();
+        this.createdBy = createdBy;
+    }
 
     public RiskAlert(
             String alertId,
@@ -184,6 +226,17 @@ public class RiskAlert {
         this.assignmentStatus = AlertAssignmentStatus.RESOLVED;
         this.resolutionNotes = notes;
         this.resolvedDate = LocalDateTime.now();
+    }
+
+    public void transferTo(Department targetDepartment) {
+        if (assignmentStatus == AlertAssignmentStatus.RESOLVED) {
+            throw new IllegalArgumentException(
+                    String.format("Cannot transfer resolved alert %s", alertId));
+        }
+        Objects.requireNonNull(targetDepartment, "Target department cannot be null");
+        this.assignedDepartment = targetDepartment;
+        this.assignmentStatus = AlertAssignmentStatus.UNASSIGNED;
+        this.assignedTo = null;
     }
 
     public void escalate(Department escalateToDepartment) {
