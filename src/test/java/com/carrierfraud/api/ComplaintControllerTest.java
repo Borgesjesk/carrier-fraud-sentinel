@@ -61,8 +61,7 @@ class ComplaintControllerTest {
                 "Twenty character description here at minimum",
                 "PAYMENT");
 
-        ResponseEntity<RiskAlertResponse> response = controller.submitComplaint(
-                request, new MultipartFile[]{}, clientAuth());
+        ResponseEntity<RiskAlertResponse> response = controller.submitComplaint(request, new MultipartFile[]{}, null, clientAuth());
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().assignedDepartment()).isEqualTo("MEDIATION");
@@ -76,8 +75,7 @@ class ComplaintControllerTest {
                 "Suspicious activity detected on multiple shipments",
                 "FRAUD");
 
-        ResponseEntity<RiskAlertResponse> response = controller.submitComplaint(
-                request, new MultipartFile[]{}, clientAuth());
+        ResponseEntity<RiskAlertResponse> response = controller.submitComplaint(request, new MultipartFile[]{}, null, clientAuth());
 
         assertThat(response.getBody().assignedDepartment()).isEqualTo("FRAUD_INVESTIGATION");
     }
@@ -89,8 +87,7 @@ class ComplaintControllerTest {
                 "Description that is at least twenty chars",
                 "PAYMENT");
 
-        assertThatThrownBy(() -> controller.submitComplaint(
-                request, new MultipartFile[]{}, adminAuth()))
+        assertThatThrownBy(() -> controller.submitComplaint(request, new MultipartFile[]{}, null, adminAuth()))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("CLIENT");
     }
@@ -102,7 +99,7 @@ class ComplaintControllerTest {
         MockMultipartFile file2 = new MockMultipartFile(
                 "documents", "b.pdf", "application/pdf", "b".getBytes());
 
-        when(documentStorage.store(any())).thenReturn(new DocumentMetadata(
+        when(documentStorage.store(any(), any())).thenReturn(new DocumentMetadata(
                 "doc-id", "a.pdf", "/path", "application/pdf", 1, LocalDateTime.now(),
                 com.carrierfraud.domain.DocumentCategory.OTHER));
 
@@ -111,8 +108,8 @@ class ComplaintControllerTest {
                 "Twenty character description here at min len",
                 "INSURANCE");
 
-        controller.submitComplaint(request, new MultipartFile[]{file1, file2}, clientAuth());
+        controller.submitComplaint(request, new MultipartFile[]{file1, file2}, null, clientAuth());
 
-        verify(documentStorage, times(2)).store(any());
+        verify(documentStorage, times(2)).store(any(), any());
     }
 }

@@ -31,7 +31,7 @@ class DiskDocumentStorageTest {
         MockMultipartFile file = new MockMultipartFile(
                 "doc", "invoice.pdf", "application/pdf", "fake-pdf-content".getBytes());
 
-        DocumentMetadata metadata = storage.store(file);
+        DocumentMetadata metadata = storage.store(file, com.carrierfraud.domain.DocumentCategory.OTHER);
 
         assertThat(metadata.originalFilename()).isEqualTo("invoice.pdf");
         assertThat(metadata.contentType()).isEqualTo("application/pdf");
@@ -44,7 +44,7 @@ class DiskDocumentStorageTest {
         MockMultipartFile empty = new MockMultipartFile(
                 "doc", "empty.pdf", "application/pdf", new byte[0]);
 
-        assertThatThrownBy(() -> storage.store(empty))
+        assertThatThrownBy(() -> storage.store(empty, com.carrierfraud.domain.DocumentCategory.OTHER))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("required");
     }
@@ -54,7 +54,7 @@ class DiskDocumentStorageTest {
         MockMultipartFile exe = new MockMultipartFile(
                 "doc", "malware.exe", "application/x-msdownload", "evil".getBytes());
 
-        assertThatThrownBy(() -> storage.store(exe))
+        assertThatThrownBy(() -> storage.store(exe, com.carrierfraud.domain.DocumentCategory.OTHER))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Unsupported content type");
     }
@@ -65,7 +65,7 @@ class DiskDocumentStorageTest {
         MockMultipartFile huge = new MockMultipartFile(
                 "doc", "huge.pdf", "application/pdf", tooLarge);
 
-        assertThatThrownBy(() -> storage.store(huge))
+        assertThatThrownBy(() -> storage.store(huge, com.carrierfraud.domain.DocumentCategory.OTHER))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("max size");
     }
@@ -81,7 +81,7 @@ class DiskDocumentStorageTest {
     void load_storedFile_returnsContent() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "doc", "test.pdf", "application/pdf", "hello".getBytes());
-        DocumentMetadata metadata = storage.store(file);
+        DocumentMetadata metadata = storage.store(file, com.carrierfraud.domain.DocumentCategory.OTHER);
 
         try (InputStream in = storage.load(metadata.storedPath())) {
             assertThat(new String(in.readAllBytes())).isEqualTo("hello");
