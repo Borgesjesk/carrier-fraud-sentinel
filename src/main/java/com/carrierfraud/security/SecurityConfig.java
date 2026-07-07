@@ -30,15 +30,19 @@ public class SecurityConfig {
     private static final int BCRYPT_STRENGTH = 12;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final AuthenticationEntryPoint restAuthenticationEntryPoint;
     private final AccessDeniedHandler restAccessDeniedHandler;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          RateLimitFilter rateLimitFilter,
                           AuthenticationEntryPoint restAuthenticationEntryPoint,
                           AccessDeniedHandler restAccessDeniedHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.rateLimitFilter = rateLimitFilter;
         this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
         this.restAccessDeniedHandler = restAccessDeniedHandler;
+
     }
 
     @Bean
@@ -56,28 +60,29 @@ public class SecurityConfig {
                         .frameOptions(FrameOptionsConfig::deny)
                         .referrerPolicy(r -> r.policy(
                                 ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                                .contentSecurityPolicy(csp -> csp.policyDirectives(
-                                        "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'"))
-                        )
-                        .exceptionHandling(e -> e
-                                .authenticationEntryPoint(restAuthenticationEntryPoint)
-                                .accessDeniedHandler(restAccessDeniedHandler)
-                        )
-                        .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/api/v1/auth/me").authenticated()
-                                .requestMatchers("/api/v1/auth/**").permitAll()
-                                .requestMatchers("/", "/index.html", "/favicon.ico",
-                                        "/static/**", "/css/**", "/js/**").permitAll()
-                                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                                .requestMatchers("/api/v1/complaints", "/api/v1/complaints/mine").hasRole("CLIENT")
-                                .requestMatchers("/api/v1/alerts/*/comments/**").authenticated()
-                                .requestMatchers("/api/v1/alerts/*/notes/**").authenticated()
-                                .requestMatchers("/api/v1/alerts/*/read", "/api/v1/alerts/unread-counts").authenticated()
-                                .requestMatchers("/api/v1/complaints/*/documents/*").authenticated()
-                                .requestMatchers("/actuator/**").hasRole("ADMIN")
-                                .anyRequest().authenticated()
-                        )
-                        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'"))
+                )
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(restAuthenticationEntryPoint)
+                        .accessDeniedHandler(restAccessDeniedHandler)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/me").authenticated()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/", "/index.html", "/favicon.ico",
+                                "/static/**", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/api/v1/complaints", "/api/v1/complaints/mine").hasRole("CLIENT")
+                        .requestMatchers("/api/v1/alerts/*/comments/**").authenticated()
+                        .requestMatchers("/api/v1/alerts/*/notes/**").authenticated()
+                        .requestMatchers("/api/v1/alerts/*/read", "/api/v1/alerts/unread-counts").authenticated()
+                        .requestMatchers("/api/v1/complaints/*/documents/*").authenticated()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
