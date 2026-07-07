@@ -22,6 +22,21 @@ Built as the final project for the IT Academy Barcelona Java Backend bootcamp. T
 ### Client case list with unread notifications
 ![My cases](docs/screenshots/05-my-cases.png)
 
+### Transfer alert modal (staff can reroute cases between departments)
+![Transfer modal](docs/screenshots/06-transfer-modal.png)
+
+### Internal notes (staff-only, invisible to clients)
+![Internal notes](docs/screenshots/07-internal-notes.png)
+
+### Stale alert detection (72h without activity)
+![Stale badge](docs/screenshots/08-stale-badge.png)
+
+### Transfer alert modal (staff can reroute cases between departments)
+
+### Internal notes (staff-only, invisible to clients)
+
+### Stale alert detection (72h without activity)
+
 ---
 
 ## What it does
