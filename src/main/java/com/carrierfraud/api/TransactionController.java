@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import com.carrierfraud.domain.AlertAssignmentStatus;
+import java.time.LocalDateTime;
 
 import java.util.List;
 import java.util.Objects;
@@ -86,6 +88,33 @@ public class TransactionController {
                 .map(RiskAlertResponse::fromDomainAlert)
                 .toList();
         return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/alerts/stale")
+    public ResponseEntity<List<RiskAlertResponse>> getStaleAlerts(Authentication authentication) {
+        Role role = extractRole(authentication);
+        if (role == Role.CLIENT) {
+            throw new AccessDeniedException("Clients cannot access stale alerts");
+        }
+
+        Set<Department> visibleDepartments = role.visibleDepartments();
+        List<RiskAlert> allAlerts = (role == Role.ADMIN)
+                ? alertRepository.findAll()
+                : alertRepository.findByAssignedDepartmentIn(visibleDepartments);
+
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(72);
+
+        List<RiskAlertResponse> stale = allAlerts.stream()
+                .filter(a -> a.getAssignedTo() != null)
+                .filter(a -> a.getAssignmentStatus() != AlertAssignmentStatus.RESOLVED)
+                .filter(a -> a.getLastActivityAt() != null && a.getLastActivityAt().isBefore(cutoff))
+                .map(RiskAlertResponse::fromDomainAlert)
+                .toList();
+
+        auditService.record("LIST_STALE_ALERTS", "RiskAlert", null,
+                "role=" + role + " count=" + stale.size());
+
+        return ResponseEntity.ok(stale);
     }
 
     @GetMapping("/alerts/{alertId}")

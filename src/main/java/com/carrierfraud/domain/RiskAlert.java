@@ -29,6 +29,7 @@ public class RiskAlert {
     private String resolutionNotes;
     private String escalatedTo;
     private LocalDateTime lastTransferAt;
+    private LocalDateTime lastActivityAt;
     private String lastTransferBy;
     private String lastTransferFromDept;
 
@@ -55,7 +56,8 @@ public class RiskAlert {
             String escalatedTo,
             String description,
             java.util.List<DocumentMetadata> documents,
-            String createdBy
+            String createdBy,
+            LocalDateTime lastActivityAt
     ) {
         this.alertId = alertId;
         this.carrierName = carrierName;
@@ -75,6 +77,7 @@ public class RiskAlert {
         this.description = description;
         this.documents = documents != null ? documents : new java.util.ArrayList<>();
         this.createdBy = createdBy;
+        this.lastActivityAt = lastActivityAt;
     }
 
     public RiskAlert(
@@ -204,6 +207,7 @@ public class RiskAlert {
         this.acceptedDate = LocalDateTime.now();
         this.assignmentStatus = AlertAssignmentStatus.ACCEPTED;
         this.assignedTo = personName;
+        this.lastActivityAt = LocalDateTime.now();
     }
 
     public void startInvestigation() {
@@ -229,6 +233,7 @@ public class RiskAlert {
         this.assignmentStatus = AlertAssignmentStatus.RESOLVED;
         this.resolutionNotes = notes;
         this.resolvedDate = LocalDateTime.now();
+        this.lastActivityAt = LocalDateTime.now();
     }
 
     public void transferTo(Department targetDepartment, String transferredBy) {
@@ -240,6 +245,7 @@ public class RiskAlert {
         this.lastTransferFromDept = this.assignedDepartment.toString();
         this.lastTransferBy = transferredBy;
         this.lastTransferAt = LocalDateTime.now();
+        this.lastActivityAt = LocalDateTime.now();
         this.assignedDepartment = targetDepartment;
         this.assignmentStatus = AlertAssignmentStatus.UNASSIGNED;
         this.assignedTo = null;
@@ -256,6 +262,7 @@ public class RiskAlert {
 
         this.assignmentStatus = AlertAssignmentStatus.ESCALATED;
         this.escalatedTo = escalateToDepartment.toString();
+        this.lastActivityAt = LocalDateTime.now();
         this.assignedDepartment = escalateToDepartment;
     }
 
@@ -352,6 +359,8 @@ public class RiskAlert {
     }
 
     public LocalDateTime getLastTransferAt() { return lastTransferAt; }
+    public LocalDateTime getLastActivityAt() { return lastActivityAt; }
+    public void touchActivity() { this.lastActivityAt = LocalDateTime.now(); }
     public String getLastTransferBy() { return lastTransferBy; }
     public String getLastTransferFromDept() { return lastTransferFromDept; }
 }

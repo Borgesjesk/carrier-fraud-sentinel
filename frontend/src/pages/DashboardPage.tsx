@@ -4,6 +4,7 @@ import { ShieldCheck, LogOut, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { alertService } from '../api/alertService';
 import { alertReadService } from '../api/alertReadService';
+import { AlertTriangle } from 'lucide-react';
 import { MessageCircle } from 'lucide-react';
 import { useRef } from 'react';
 import { Toast } from '../components/Toast';
@@ -70,7 +71,7 @@ export function DashboardPage() {
 
   const filteredAlerts = alerts.filter((alert) => {
     if (filter === 'mine') return alert.assignedTo === user?.username;
-    if (filter === 'unassigned') return alert.status === 'UNASSIGNED';
+    if (filter === 'stale') return alert.isStale === true;
     return true;
   });
 
@@ -143,7 +144,7 @@ export function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
                       <h2 className="text-base font-medium text-slate-200">Recent alerts</h2>
                       <div className="flex gap-1 bg-slate-900/50 border border-slate-800 rounded-lg p-1">
-                        {(['all', 'unassigned', 'mine'] as const).map((f) => (
+                        {(['all', 'unassigned', 'mine', 'stale'] as const).map((f) => (
                           <button
                             key={f}
                             onClick={() => setFilter(f)}
@@ -153,7 +154,7 @@ export function DashboardPage() {
                                 : 'text-slate-400 hover:text-slate-200'
                             }`}
                           >
-                            {f === 'all' ? 'All' : f === 'unassigned' ? 'Unassigned' : 'Mine'}
+                            {f === 'all' ? 'All' : f === 'unassigned' ? 'Unassigned' : f === 'mine' ? 'Mine' : 'Stale'}
                             {f === 'unassigned' && alerts.filter((a) => a.status === 'UNASSIGNED').length > 0 && (
                               <span className="ml-1 text-slate-500">
                                 ({alerts.filter((a) => a.status === 'UNASSIGNED').length})
@@ -162,6 +163,11 @@ export function DashboardPage() {
                             {f === 'mine' && alerts.filter((a) => a.assignedTo === user?.username).length > 0 && (
                               <span className="ml-1 text-slate-500">
                                 ({alerts.filter((a) => a.assignedTo === user?.username).length})
+                              </span>
+                            )}
+                            {f === 'stale' && alerts.filter((a) => a.isStale).length > 0 && (
+                              <span className="ml-1 text-slate-500">
+                                ({alerts.filter((a) => a.isStale).length})
                               </span>
                             )}
                           </button>
@@ -227,7 +233,7 @@ export function DashboardPage() {
                       </td>
                       <td className="px-4 py-3 text-slate-400 text-xs">{alert.triggeredRules}</td>
                       <td className="px-4 py-3 text-slate-300 text-xs">{alert.assignedDepartment}</td>
-                      <td className="px-4 py-3 text-slate-300 text-xs">{alert.status}</td>
+                      <td className="px-4 py-3 text-slate-300 text-xs"><div className="flex items-center gap-1.5">{alert.status}{alert.isStale && (<AlertTriangle className="w-3.5 h-3.5 text-amber-400" />)}</div></td>
                       <td className="px-4 py-3 text-slate-400 text-xs">{formatDate(alert.createdDate)}</td>
                     </tr>
                   ))}

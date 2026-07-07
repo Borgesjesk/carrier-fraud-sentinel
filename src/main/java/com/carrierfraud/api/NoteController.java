@@ -43,7 +43,7 @@ public class NoteController {
             Authentication authentication) {
 
         ensureStaff(authentication);
-        ensureAlertExists(alertId);
+        RiskAlert alert = ensureAlertExists(alertId);
 
         List<NoteResponse> notes = noteRepository
                 .findByAlertIdOrderByCreatedAtAsc(alertId)
@@ -61,11 +61,13 @@ public class NoteController {
             Authentication authentication) {
 
         ensureStaff(authentication);
-        ensureAlertExists(alertId);
+        RiskAlert alert = ensureAlertExists(alertId);
 
         String role = extractRole(authentication);
         Note note = new Note(alertId, authentication.getName(), role, request.content());
         Note saved = noteRepository.save(note);
+        alert.touchActivity();
+        alertRepository.save(alert);
 
         auditService.record("ADD_NOTE", "Note", saved.getNoteId(),
                 "alert=" + alertId + " author=" + authentication.getName());
@@ -80,8 +82,8 @@ public class NoteController {
         }
     }
 
-    private void ensureAlertExists(String alertId) {
-        RiskAlert alert = alertRepository.findByAlertId(alertId)
+    private RiskAlert ensureAlertExists(String alertId) {
+        return alertRepository.findByAlertId(alertId)
                 .orElseThrow(() -> new com.carrierfraud.domain.BusinessRuleException(
                         "Alert not found: " + alertId));
     }

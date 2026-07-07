@@ -37,4 +37,5 @@ export interface Alert {
   lastTransferAt?: string;
   lastTransferBy?: string;
   lastTransferFromDept?: string;
+  isStale?: boolean;
 }

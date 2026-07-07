@@ -72,6 +72,8 @@ public class CommentController {
         String role = extractRole(authentication);
         Comment comment = new Comment(alertId, authentication.getName(), role, request.content());
         Comment saved = commentRepository.save(comment);
+        alert.touchActivity();
+        alertRepository.save(alert);
 
         auditService.record("ADD_COMMENT", "Comment", saved.getCommentId(),
                 "alert=" + alertId + " author=" + authentication.getName());

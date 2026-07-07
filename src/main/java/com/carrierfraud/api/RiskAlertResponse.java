@@ -22,7 +22,8 @@ public record RiskAlertResponse(
         String assignedTo,
         LocalDateTime lastTransferAt,
         String lastTransferBy,
-        String lastTransferFromDept
+        String lastTransferFromDept,
+        boolean isStale
 ) {
     public static RiskAlertResponse fromDomainAlert(RiskAlert alert) {
         return new RiskAlertResponse(
@@ -41,8 +42,16 @@ public record RiskAlertResponse(
                 alert.getAssignedTo(),
                 alert.getLastTransferAt(),
                 alert.getLastTransferBy(),
-                alert.getLastTransferFromDept()
+                alert.getLastTransferFromDept(),
+                computeIsStale(alert)
         );
+    }
+
+    private static boolean computeIsStale(RiskAlert alert) {
+        if (alert.getAssignedTo() == null) return false;
+        if (alert.getAssignmentStatus() == com.carrierfraud.domain.AlertAssignmentStatus.RESOLVED) return false;
+        if (alert.getLastActivityAt() == null) return false;
+        return alert.getLastActivityAt().isBefore(LocalDateTime.now().minusHours(72));
     }
 
     private static String computeClientVisibleStatus(RiskAlert alert) {

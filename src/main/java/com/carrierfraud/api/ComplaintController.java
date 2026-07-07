@@ -66,6 +66,7 @@ public class ComplaintController {
         );
         alert.setDescription(request.description());
         alert.setCreatedBy(authentication.getName());
+        alert.touchActivity();
 
         if (documents != null) {
             for (int i = 0; i < documents.length; i++) {
