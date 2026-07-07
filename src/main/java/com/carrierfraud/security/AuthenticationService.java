@@ -23,13 +23,16 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository;
 
     public AuthenticationService(AuthenticationManager authenticationManager,
                                  JwtService jwtService,
-                                 UserRepository userRepository) {
+                                 UserRepository userRepository,
+                                 com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     public LoginResult login(LoginRequest request, String remoteAddr) {
@@ -52,6 +55,24 @@ public class AuthenticationService {
                     request.username(), remoteAddr, ex.getClass().getSimpleName());
             throw ex;
         }
+    }
+
+    public String refreshAccessToken(String refreshTokenId) {
+        if (refreshTokenId == null || refreshTokenId.isBlank()) {
+            throw new org.springframework.security.core.AuthenticationException("Refresh token missing") {};
+        }
+
+        com.carrierfraud.domain.RefreshToken token = refreshTokenRepository.findByTokenId(refreshTokenId)
+                .orElseThrow(() -> new org.springframework.security.core.AuthenticationException("Refresh token not found") {});
+
+        if (!token.isValid()) {
+            throw new org.springframework.security.core.AuthenticationException("Refresh token expired or revoked") {};
+        }
+
+        com.carrierfraud.domain.User user = userRepository.findByUsername(token.getUsername())
+                .orElseThrow(() -> new org.springframework.security.core.AuthenticationException("User not found") {});
+
+        return jwtService.generateToken(user.getUsername(), java.util.Map.of("role", user.getRole().name()));
     }
 
     private User loadAuthenticatedUser(String username) {

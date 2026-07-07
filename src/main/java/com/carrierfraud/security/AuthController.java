@@ -23,11 +23,14 @@ public class AuthController {
 
     private final AuthenticationService authenticationService;
     private final CookieProperties cookieProperties;
+    private final com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository;
 
     public AuthController(AuthenticationService authenticationService,
-                          CookieProperties cookieProperties) {
+                          CookieProperties cookieProperties,
+                          com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository) {
         this.authenticationService = authenticationService;
         this.cookieProperties = cookieProperties;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     @PostMapping("/login")
@@ -35,7 +38,13 @@ public class AuthController {
                                               HttpServletRequest httpRequest) {
         LoginResult result = authenticationService.login(request, httpRequest.getRemoteAddr());
 
-        ResponseCookie cookie = ResponseCookie.from(cookieProperties.name(), result.token())
+        com.carrierfraud.domain.RefreshToken refreshToken = new com.carrierfraud.domain.RefreshToken(
+                request.username(),
+                java.time.LocalDateTime.now().plusDays(7)
+        );
+        refreshTokenRepository.save(refreshToken);
+
+        ResponseCookie sessionCookie = ResponseCookie.from(cookieProperties.name(), result.token())
                 .httpOnly(true)
                 .secure(cookieProperties.secure())
                 .sameSite(cookieProperties.sameSite())
@@ -43,8 +52,17 @@ public class AuthController {
                 .path(cookieProperties.path())
                 .build();
 
+        ResponseCookie refreshCookie = ResponseCookie.from("FS_REFRESH", refreshToken.getTokenId())
+                .httpOnly(true)
+                .secure(cookieProperties.secure())
+                .sameSite(cookieProperties.sameSite())
+                .maxAge(7 * 24 * 60 * 60)
+                .path("/api/v1/auth")
+                .build();
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(result.body());
     }
 
@@ -56,8 +74,17 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        ResponseCookie clearCookie = ResponseCookie.from(cookieProperties.name(), "")
+    public ResponseEntity<Void> logout(
+            @org.springframework.web.bind.annotation.CookieValue(name = "FS_REFRESH", required = false) String refreshTokenId) {
+
+        if (refreshTokenId != null && !refreshTokenId.isBlank()) {
+            refreshTokenRepository.findByTokenId(refreshTokenId).ifPresent(rt -> {
+                rt.revoke();
+                refreshTokenRepository.save(rt);
+            });
+        }
+
+        ResponseCookie clearSession = ResponseCookie.from(cookieProperties.name(), "")
                 .httpOnly(true)
                 .secure(cookieProperties.secure())
                 .sameSite(cookieProperties.sameSite())
@@ -65,8 +92,36 @@ public class AuthController {
                 .path(cookieProperties.path())
                 .build();
 
+        ResponseCookie clearRefresh = ResponseCookie.from("FS_REFRESH", "")
+                .httpOnly(true)
+                .secure(cookieProperties.secure())
+                .sameSite(cookieProperties.sameSite())
+                .maxAge(0)
+                .path("/api/v1/auth")
+                .build();
+
         return ResponseEntity.noContent()
-                .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, clearSession.toString())
+                .header(HttpHeaders.SET_COOKIE, clearRefresh.toString())
+                .build();
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Void> refresh(
+            @org.springframework.web.bind.annotation.CookieValue(name = "FS_REFRESH", required = false) String refreshTokenId) {
+
+        String newAccessToken = authenticationService.refreshAccessToken(refreshTokenId);
+
+        ResponseCookie sessionCookie = ResponseCookie.from(cookieProperties.name(), newAccessToken)
+                .httpOnly(true)
+                .secure(cookieProperties.secure())
+                .sameSite(cookieProperties.sameSite())
+                .maxAge(cookieProperties.maxAgeSeconds())
+                .path(cookieProperties.path())
+                .build();
+
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
                 .build();
     }
 
