@@ -134,6 +134,28 @@ frontend/
 
 ---
 
+### Refresh tokens with revocation
+
+Access JWT expires in 1 hour (short blast radius on token theft). Refresh
+token is stored in MongoDB with a 7-day TTL and can be revoked instantly
+via the logout endpoint. Frontend axios interceptor auto-refreshes on any
+401, retries the original request transparently. User keeps working;
+attacker gets 1 hour max.
+
+### Rate limiting
+
+Bucket4j token buckets keyed by IP:
+- POST /api/v1/auth/login: 5 attempts per minute (brute force defense)
+- All other endpoints: 60 requests per minute per client
+
+429 responses follow RFC 7807 Problem Details. Reset window is 60 seconds.
+
+### Interactive API documentation
+
+Swagger UI live at /swagger-ui.html. All 20+ endpoints organized by tag
+(Authentication, Alerts, Complaints, Comments, Notes, Analytics). Reviewers
+can explore the contract and try requests without cloning the repo.
+
 ## Detection rules
 
 Three rules implemented with the Strategy pattern. Open for extension, closed for modification — adding a new rule is a new class implementing the same interface, no changes to the dispatcher.
