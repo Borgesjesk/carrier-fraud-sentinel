@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Search, XCircle, ArrowUpCircle, ArrowRightLeft, FileText, Download } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Search, ArrowUpCircle, ArrowRightLeft, FileText, Download } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { CommentsThread } from '../components/CommentsThread';
 import { alertService } from '../api/alertService';
@@ -26,7 +26,7 @@ const STATUS_STYLES: Record<AlertStatus, string> = {
 
 export function AlertDetailPage() {
   const { alertId } = useParams<{ alertId: string }>();
-  const navigate = useNavigate();
+  useNavigate();
   const { user } = useAuth();
 
   const [alert, setAlert] = useState<Alert | null>(null);

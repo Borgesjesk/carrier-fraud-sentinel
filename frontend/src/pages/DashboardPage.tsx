@@ -23,7 +23,7 @@ export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
-  const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned'>('all');
+  const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned' | 'stale'>('all');
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const previousCountsRef = useRef<Record<string, number>>({});

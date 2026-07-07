@@ -1,4 +1,4 @@
-import { useEffect, useState, FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { MessageSquare, Send, Loader2, AlertCircle, User } from 'lucide-react';
 import { commentService } from '../api/commentService';
 import type { Comment } from '../types/Comment';
