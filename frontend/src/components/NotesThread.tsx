@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { FileText, Send, Loader2, AlertCircle, User, Lock } from 'lucide-react';
+import { Send, Loader2, AlertCircle, User, Lock } from 'lucide-react';
 import { noteService } from '../api/noteService';
 import type { Note } from '../types/Note';
 
