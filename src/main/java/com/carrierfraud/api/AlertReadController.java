@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Analytics")
 public class AlertReadController {
 
     private final AlertReadService alertReadService;

@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.List;
 
 @RestController
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Complaints")
 @RequestMapping("/api/v1/complaints")
 public class ComplaintController {
 

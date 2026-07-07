@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Notes")
 @RequestMapping("/api/v1/alerts/{alertId}/notes")
 public class NoteController {
 

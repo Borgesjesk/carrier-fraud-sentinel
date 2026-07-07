@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @RestController
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Alerts")
 @RequestMapping("/api/v1/transactions")
 public class TransactionController {
 
