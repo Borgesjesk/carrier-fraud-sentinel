@@ -35,12 +35,13 @@ class AuthenticationServiceTest {
     @Mock private JwtService jwtService;
     @Mock private UserRepository userRepository;
     @Mock private com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository;
+    @Mock private MfaService mfaService;
 
     private AuthenticationService authenticationService;
 
     @BeforeEach
     void setUp() {
-        authenticationService = new AuthenticationService(authenticationManager, jwtService, userRepository, refreshTokenRepository);
+        authenticationService = new AuthenticationService(authenticationManager, jwtService, userRepository, refreshTokenRepository, mfaService);
     }
 
     @Test

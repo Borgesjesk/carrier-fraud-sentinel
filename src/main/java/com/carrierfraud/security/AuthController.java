@@ -38,9 +38,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
-                                              HttpServletRequest httpRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request,
+                                   HttpServletRequest httpRequest) {
         LoginResult result = authenticationService.login(request, httpRequest.getRemoteAddr());
+
+        if (result.mfaRequired()) {
+            return ResponseEntity.ok(java.util.Map.of("mfaRequired", true));
+        }
+
 
         com.carrierfraud.domain.RefreshToken refreshToken = new com.carrierfraud.domain.RefreshToken(
                 request.username(),
@@ -75,6 +80,45 @@ public class AuthController {
         String username = authentication.getName();
         String role = extractRole(authentication);
         return ResponseEntity.ok(new AuthResponse(username, role));
+    }
+
+    @PostMapping("/login/mfa")
+    public ResponseEntity<AuthResponse> loginMfa(
+            @Valid @RequestBody com.carrierfraud.security.dto.LoginMfaRequest request,
+            HttpServletRequest httpRequest) {
+
+        LoginResult result = authenticationService.loginMfa(
+                new LoginRequest(request.username(), request.password()),
+                request.code(),
+                httpRequest.getRemoteAddr()
+        );
+
+        com.carrierfraud.domain.RefreshToken refreshToken = new com.carrierfraud.domain.RefreshToken(
+                request.username(),
+                java.time.LocalDateTime.now().plusDays(7)
+        );
+        refreshTokenRepository.save(refreshToken);
+
+        ResponseCookie sessionCookie = ResponseCookie.from(cookieProperties.name(), result.token())
+                .httpOnly(true)
+                .secure(cookieProperties.secure())
+                .sameSite(cookieProperties.sameSite())
+                .maxAge(cookieProperties.maxAgeSeconds())
+                .path(cookieProperties.path())
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("FS_REFRESH", refreshToken.getTokenId())
+                .httpOnly(true)
+                .secure(cookieProperties.secure())
+                .sameSite(cookieProperties.sameSite())
+                .maxAge(7 * 24 * 60 * 60)
+                .path("/api/v1/auth")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(result.body());
     }
 
     @PostMapping("/logout")

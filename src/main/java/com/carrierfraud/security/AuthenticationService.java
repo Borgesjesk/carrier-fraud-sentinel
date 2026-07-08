@@ -24,15 +24,18 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository;
+    private final MfaService mfaService;
 
     public AuthenticationService(AuthenticationManager authenticationManager,
                                  JwtService jwtService,
                                  UserRepository userRepository,
-                                 com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository) {
+                                 com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository,
+                                 MfaService mfaService) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.mfaService = mfaService;
     }
 
     public LoginResult login(LoginRequest request, String remoteAddr) {
@@ -48,10 +51,44 @@ public class AuthenticationService {
             log.info("Successful login: username={} role={} remote={}",
                     user.getUsername(), role, remoteAddr);
 
-            return new LoginResult(token, new AuthResponse(user.getUsername(), role));
+            if (user.isMfaEnabled()) {
+                log.info("MFA challenge issued: username={}", user.getUsername());
+                return LoginResult.mfaChallenge();
+            }
+            return LoginResult.authenticated(token, new AuthResponse(user.getUsername(), role));
 
         } catch (AuthenticationException ex) {
             log.warn("Failed login attempt: username={} remote={} reason={}",
+                    request.username(), remoteAddr, ex.getClass().getSimpleName());
+            throw ex;
+        }
+    }
+
+    public LoginResult loginMfa(LoginRequest request, int totpCode, String remoteAddr) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.username(), request.password())
+            );
+            User user = loadAuthenticatedUser(authentication.getName());
+
+            if (!user.isMfaEnabled()) {
+                throw new AuthenticationException("MFA not enabled for user") {
+                };
+            }
+
+            if (!mfaService.verifyCode(user.getUsername(), totpCode)) {
+                log.warn("Invalid MFA code: username={} remote={}", user.getUsername(), remoteAddr);
+                throw new AuthenticationException("Invalid MFA code") {
+                };
+            }
+
+            String role = user.getRole().name();
+            String token = jwtService.generateToken(user.getUsername(), Map.of(ROLE_CLAIM, role));
+            log.info("Successful MFA login: username={} role={} remote={}",
+                    user.getUsername(), role, remoteAddr);
+            return LoginResult.authenticated(token, new AuthResponse(user.getUsername(), role));
+        } catch (AuthenticationException ex) {
+            log.warn("Failed MFA login: username={} remote={} reason={}",
                     request.username(), remoteAddr, ex.getClass().getSimpleName());
             throw ex;
         }

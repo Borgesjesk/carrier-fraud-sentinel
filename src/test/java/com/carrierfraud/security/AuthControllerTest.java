@@ -67,7 +67,7 @@ class AuthControllerTest {
 
     @Test
     void login_setsAuthCookieOnValidCredentials() throws Exception {
-        LoginResult result = new LoginResult(JWT, new AuthResponse(USERNAME, "ADMIN"));
+        LoginResult result = LoginResult.authenticated(JWT, new AuthResponse(USERNAME, "ADMIN"));
         when(authenticationService.login(any(LoginRequest.class), anyString())).thenReturn(result);
 
         MvcResult mvcResult = mockMvc.perform(post(LOGIN_URL)
@@ -90,7 +90,7 @@ class AuthControllerTest {
 
     @Test
     void login_returnsUsernameAndRoleInBodyWithoutAccessToken() throws Exception {
-        LoginResult result = new LoginResult(JWT, new AuthResponse(USERNAME, "ADMIN"));
+        LoginResult result = LoginResult.authenticated(JWT, new AuthResponse(USERNAME, "ADMIN"));
         when(authenticationService.login(any(LoginRequest.class), anyString())).thenReturn(result);
 
         mockMvc.perform(post(LOGIN_URL)

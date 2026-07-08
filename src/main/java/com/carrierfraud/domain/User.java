@@ -19,18 +19,15 @@ public class User {
 
     @Indexed(unique = true)
     private String username;
-
     private String passwordHash;
-
     private Role role;
-
     private boolean enabled;
-
     private boolean accountLocked;
-
     private Instant createdAt;
-
     private String email;
+    private boolean mfaEnabled;
+    private String mfaSecret;
+    private java.util.List<String> backupCodes = new java.util.ArrayList<>();
 
     public User(String username, String passwordHash, Role role, String email) {
         this.username = Objects.requireNonNull(username, "username");
@@ -48,5 +45,29 @@ public class User {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public boolean isMfaEnabled() {
+        return mfaEnabled;
+    }
+
+    public void setMfaEnabled(boolean mfaEnabled) {
+        this.mfaEnabled = mfaEnabled;
+    }
+
+    public String getMfaSecret() {
+        return mfaSecret;
+    }
+
+    public void setMfaSecret(String mfaSecret) {
+        this.mfaSecret = mfaSecret;
+    }
+
+    public java.util.List<String> getBackupCodes() {
+        return backupCodes;
+    }
+
+    public void setBackupCodes(java.util.List<String> backupCodes) {
+        this.backupCodes = backupCodes;
     }
 }
