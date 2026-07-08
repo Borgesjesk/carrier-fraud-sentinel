@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { ShieldCheck, User, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { AxiosError } from 'axios';
@@ -126,6 +126,10 @@ export function LoginPage() {
               </>
             )}
           </button>
+
+          <Link to="/forgot-password" className="block text-center text-xs text-slate-400 hover:text-slate-200 mt-4">
+            Forgot your password?
+          </Link>
         </form>
 
         {/* Footer */}
