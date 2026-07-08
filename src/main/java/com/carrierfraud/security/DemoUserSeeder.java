@@ -55,7 +55,7 @@ public class DemoUserSeeder implements CommandLineRunner {
         if (userRepository.existsByUsername(username)) {
             return;
         }
-        User user = new User(username, passwordEncoder.encode(rawPassword), role);
+        User user = new User(username, passwordEncoder.encode(rawPassword), role, username + "@fraudsentinel.local");
         userRepository.save(user);
         log.info("Seeded demo user: username={} role={}", username, role);
     }

@@ -34,7 +34,7 @@ class UserDetailsServiceImplTest {
 
     @Test
     void loadUserByUsername_returnsUserDetailsWhenFound() {
-        User user = new User(USERNAME, PASSWORD_HASH, Role.ANALYST);
+        User user = new User(USERNAME, PASSWORD_HASH, Role.ANALYST, "test@test.local");
         when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(user));
 
         UserDetails details = service.loadUserByUsername(USERNAME);

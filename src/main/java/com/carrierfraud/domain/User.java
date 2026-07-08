@@ -30,12 +30,23 @@ public class User {
 
     private Instant createdAt;
 
-    public User(String username, String passwordHash, Role role) {
+    private String email;
+
+    public User(String username, String passwordHash, Role role, String email) {
         this.username = Objects.requireNonNull(username, "username");
         this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
         this.role = Objects.requireNonNull(role, "role");
+        this.email = email;
         this.enabled = true;
         this.accountLocked = false;
         this.createdAt = Instant.now();
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 }

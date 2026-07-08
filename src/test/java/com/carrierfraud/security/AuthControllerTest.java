@@ -54,6 +54,7 @@ class AuthControllerTest {
     @MockitoBean private JwtAuthenticationFilter jwtAuthenticationFilter;
     @MockitoBean private CookieProperties cookieProperties;
     @MockitoBean private com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository;
+    @MockitoBean private PasswordResetService passwordResetService;
 
     @BeforeEach
     void setUp() {
@@ -134,7 +135,7 @@ class AuthControllerTest {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 "admin", null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
 
-        var response = new AuthController(authenticationService, cookieProperties, refreshTokenRepository).me(auth);
+        var response = new AuthController(authenticationService, cookieProperties, refreshTokenRepository, passwordResetService).me(auth);
 
         assertAll(
                 () -> assertThat(response.getStatusCode().value()).isEqualTo(200),
@@ -149,7 +150,7 @@ class AuthControllerTest {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 "alice", null, List.of(new SimpleGrantedAuthority("ROLE_ANALYST")));
 
-        var response = new AuthController(authenticationService, cookieProperties, refreshTokenRepository).me(auth);
+        var response = new AuthController(authenticationService, cookieProperties, refreshTokenRepository, passwordResetService).me(auth);
 
         assertThat(response.getBody().role()).isEqualTo("ANALYST");
     }
@@ -158,7 +159,7 @@ class AuthControllerTest {
     void me_noRolePrefix_throwsAccessDeniedException() {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 "alice", null, List.of(new SimpleGrantedAuthority("not_a_role")));
-        AuthController controller = new AuthController(authenticationService, cookieProperties, refreshTokenRepository);
+        AuthController controller = new AuthController(authenticationService, cookieProperties, refreshTokenRepository, passwordResetService);
 
         AccessDeniedException ex = assertThrows(AccessDeniedException.class, () -> controller.me(auth));
 
@@ -169,7 +170,7 @@ class AuthControllerTest {
     void me_emptyAuthorities_throwsAccessDeniedException() {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 "alice", null, List.of());
-        AuthController controller = new AuthController(authenticationService, cookieProperties, refreshTokenRepository);
+        AuthController controller = new AuthController(authenticationService, cookieProperties, refreshTokenRepository, passwordResetService);
 
         assertThrows(AccessDeniedException.class, () -> controller.me(auth));
     }

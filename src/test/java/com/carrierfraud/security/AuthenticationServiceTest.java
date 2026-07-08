@@ -48,7 +48,7 @@ class AuthenticationServiceTest {
         LoginRequest request = new LoginRequest(USERNAME, PASSWORD);
         Authentication authentication = new UsernamePasswordAuthenticationToken(USERNAME, PASSWORD);
 
-        User user = new User(USERNAME, "hash", Role.ADMIN);
+        User user = new User(USERNAME, "hash", Role.ADMIN, "test@test.local");
 
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(user));

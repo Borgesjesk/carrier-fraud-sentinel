@@ -24,14 +24,17 @@ public class AuthController {
 
     private final AuthenticationService authenticationService;
     private final CookieProperties cookieProperties;
+    private final PasswordResetService passwordResetService;
     private final com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository;
 
     public AuthController(AuthenticationService authenticationService,
                           CookieProperties cookieProperties,
-                          com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository) {
+                          com.carrierfraud.infrastructure.RefreshTokenRepository refreshTokenRepository,
+                          PasswordResetService passwordResetService) {
         this.authenticationService = authenticationService;
         this.cookieProperties = cookieProperties;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/login")
@@ -133,6 +136,20 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, newRefreshCookie.toString())
                 .build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(
+            @Valid @RequestBody com.carrierfraud.security.dto.ForgotPasswordRequest request) {
+        passwordResetService.requestReset(request.email());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(
+            @Valid @RequestBody com.carrierfraud.security.dto.ResetPasswordRequest request) {
+        passwordResetService.applyReset(request.token(), request.newPassword());
+        return ResponseEntity.noContent().build();
     }
 
     private String extractRole(Authentication authentication) {
