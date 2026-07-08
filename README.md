@@ -212,6 +212,23 @@ CLIENT is fundamentally different from the others — they don't have department
 
 ## Running locally
 
+### Quick start with Docker (recommended)
+
+```bash
+git clone https://github.com/Borgesjesk/carrier-fraud-sentinel
+cd carrier-fraud-sentinel
+docker compose up -d
+```
+
+Backend on http://localhost:8080, Swagger UI at /swagger-ui.html. Four demo
+users are seeded automatically: admin, analyst, compliance, client1
+(default passwords are in docker-compose.yml — override via .env for
+non-local use).
+
+### Manual setup
+
+
+
 **Prerequisites**
 - Java 21 or newer
 - Node 20 or newer
