@@ -57,22 +57,47 @@ public class AuthenticationService {
         }
     }
 
-    public String refreshAccessToken(String refreshTokenId) {
+    public RefreshResult refreshAccessToken(String refreshTokenId) {
         if (refreshTokenId == null || refreshTokenId.isBlank()) {
-            throw new org.springframework.security.core.AuthenticationException("Refresh token missing") {};
+            throw new org.springframework.security.core.AuthenticationException("Refresh token missing") {
+            };
         }
-
         com.carrierfraud.domain.RefreshToken token = refreshTokenRepository.findByTokenId(refreshTokenId)
-                .orElseThrow(() -> new org.springframework.security.core.AuthenticationException("Refresh token not found") {});
+                .orElseThrow(() -> new org.springframework.security.core.AuthenticationException("Refresh token not found") {
+                });
 
         if (!token.isValid()) {
-            throw new org.springframework.security.core.AuthenticationException("Refresh token expired or revoked") {};
+            if (token.isRevoked()) {
+                log.warn("Refresh token reuse detected: username={} tokenId={}", token.getUsername(), refreshTokenId);
+                refreshTokenRepository.findAll().stream()
+                        .filter(t -> t.getUsername().equals(token.getUsername()) && !t.isRevoked())
+                        .forEach(t -> {
+                            t.revoke();
+                            refreshTokenRepository.save(t);
+                        });
+            }
+            throw new org.springframework.security.core.AuthenticationException("Refresh token expired or revoked") {
+            };
         }
 
         com.carrierfraud.domain.User user = userRepository.findByUsername(token.getUsername())
-                .orElseThrow(() -> new org.springframework.security.core.AuthenticationException("User not found") {});
+                .orElseThrow(() -> new org.springframework.security.core.AuthenticationException("User not found") {
+                });
 
-        return jwtService.generateToken(user.getUsername(), java.util.Map.of("role", user.getRole().name()));
+        token.revoke();
+        refreshTokenRepository.save(token);
+
+        com.carrierfraud.domain.RefreshToken newToken = new com.carrierfraud.domain.RefreshToken(
+                user.getUsername(),
+                java.time.LocalDateTime.now().plusDays(7)
+        );
+        refreshTokenRepository.save(newToken);
+
+        String accessToken = jwtService.generateToken(user.getUsername(), java.util.Map.of("role", user.getRole().name()));
+        return new RefreshResult(accessToken, newToken.getTokenId());
+    }
+
+    public record RefreshResult(String accessToken, String refreshTokenId) {
     }
 
     private User loadAuthenticatedUser(String username) {
