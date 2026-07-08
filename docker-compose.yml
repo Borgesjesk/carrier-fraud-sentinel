@@ -1,11 +1,9 @@
-version: '3.9'
-
 services:
-  # ============ MONGODB DATABASE ============
+
   mongodb:
     image: mongo:7.0
     container_name: fraudsentinel-mongodb
-    restart: always
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-fraudadmin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-fraudadmin123}
@@ -13,51 +11,44 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      # Persist data across container restarts
-      - fraudsentinel-mongodb-volume:/data/db
+      - fraudsentinel-mongo-data:/data/db
     networks:
-      - fraudsentinel-network
+      - fraudsentinel-net
     healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
 
-  # ============ SPRING BOOT APPLICATION ============
-  fraudsentinel-api:
-    image: fraudsentinel:latest
+  backend:
+    build: .
     container_name: fraudsentinel-api
-    restart: always
-    environment:
-      # Spring Boot configuration
-      SPRING_APPLICATION_NAME: fraudsentinel
-      SPRING_PROFILES_ACTIVE: production
-
-      # MongoDB connection
-      SPRING_DATA_MONGODB_URI: mongodb://${MONGO_USER:-fraudadmin}:${MONGO_PASS:-fraudadmin123}@mongodb:27017/fraudsentinel?authSource=admin
-
-      # Server configuration
-      SERVER_PORT: 8080
-      SERVER_SERVLET_CONTEXT_PATH: /api
-    ports:
-      - "8080:8080"
+    restart: unless-stopped
     depends_on:
       mongodb:
         condition: service_healthy
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://${MONGO_USER:-fraudadmin}:${MONGO_PASS:-fraudadmin123}@mongodb:27017/fraudsentinel?authSource=admin
+      SECURITY_JWT_SECRET: ${SECURITY_JWT_SECRET:-Y2ktdGVzdC1zZWNyZXQta2V5LWZvci1qd3QtbXVzdC1iZS1sb25nLWVub3VnaA==}
+      APP_COOKIE_SECURE: ${APP_COOKIE_SECURE:-false}
+      APP_STORAGE_ROOT: /var/lib/fraudsentinel/uploads
+      SPRING_PROFILES_ACTIVE: dev
+      APP_SEED_ADMIN_PASSWORD: ${APP_SEED_ADMIN_PASSWORD:-ChangeMeAdmin123!}
+      APP_SEED_ANALYST_PASSWORD: ${APP_SEED_ANALYST_PASSWORD:-ChangeMeAnalyst123!}
+      APP_SEED_COMPLIANCE_PASSWORD: ${APP_SEED_COMPLIANCE_PASSWORD:-ChangeMeCompliance123!}
+      APP_SEED_CLIENT_PASSWORD: ${APP_SEED_CLIENT_PASSWORD:-ChangeMeClient123!}
+    ports:
+      - "8080:8080"
+    volumes:
+      - fraudsentinel-uploads:/var/lib/fraudsentinel/uploads
     networks:
-      - fraudsentinel-network
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/api/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      - fraudsentinel-net
 
-# ============ VOLUMES ============
 volumes:
-  fraudsentinel-mongodb-volume:
-    driver: local
+  fraudsentinel-mongo-data:
+  fraudsentinel-uploads:
 
-# ============ NETWORKS ============
 networks:
-  fraudsentinel-network:
+  fraudsentinel-net:
     driver: bridge

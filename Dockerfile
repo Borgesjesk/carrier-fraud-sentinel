@@ -1,34 +1,30 @@
-# ============ BUILD STAGE ============
-# Compiles the Java application
-FROM maven:3.9-eclipse-temurin-21 as builder
+FROM eclipse-temurin:21-jdk AS build
 
-WORKDIR /build
+WORKDIR /app
 
-# Copy pom.xml first (caches dependency layer)
-COPY pom.xml .
-RUN mvn dependency:go-offline
+COPY mvnw ./
+COPY .mvn .mvn
+COPY pom.xml ./
+RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
 
-# Copy source code
 COPY src ./src
+RUN ./mvnw package -DskipTests -B
 
-# Build the application
-RUN mvn clean package -DskipTests
 
-# ============ RUNTIME STAGE ============
-# Runs the compiled application (smaller image)
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Copy jar from builder stage
-COPY --from=builder /build/target/*.jar app.jar
+RUN groupadd -r fraudsentinel && useradd -r -g fraudsentinel fraudsentinel
 
-# Health check endpoint
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD java -version
+COPY --from=build /app/target/*.jar app.jar
+RUN chown fraudsentinel:fraudsentinel app.jar
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+USER fraudsentinel
 
-# Default Spring Boot port
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD wget -qO- http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
