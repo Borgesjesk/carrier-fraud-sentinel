@@ -15,10 +15,10 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-RUN groupadd -r fraudsentinel && useradd -r -g fraudsentinel fraudsentinel
+RUN groupadd -r fraudsentinel && useradd -r -m -d /home/fraudsentinel -g fraudsentinel fraudsentinel
 
 COPY --from=build /app/target/*.jar app.jar
-RUN chown fraudsentinel:fraudsentinel app.jar
+RUN chown fraudsentinel:fraudsentinel app.jar && mkdir -p /home/fraudsentinel/uploads && chown -R fraudsentinel:fraudsentinel /home/fraudsentinel
 
 USER fraudsentinel
 

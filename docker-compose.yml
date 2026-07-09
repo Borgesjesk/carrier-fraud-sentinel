@@ -32,7 +32,7 @@ services:
       SPRING_DATA_MONGODB_URI: mongodb://${MONGO_USER:-fraudadmin}:${MONGO_PASS:-fraudadmin123}@mongodb:27017/fraudsentinel?authSource=admin
       SECURITY_JWT_SECRET: ${SECURITY_JWT_SECRET:-Y2ktdGVzdC1zZWNyZXQta2V5LWZvci1qd3QtbXVzdC1iZS1sb25nLWVub3VnaA==}
       APP_COOKIE_SECURE: ${APP_COOKIE_SECURE:-false}
-      APP_STORAGE_ROOT: /var/lib/fraudsentinel/uploads
+      APP_STORAGE_ROOT: /home/fraudsentinel/uploads
       SPRING_PROFILES_ACTIVE: dev
       APP_SEED_ADMIN_PASSWORD: ${APP_SEED_ADMIN_PASSWORD:-ChangeMeAdmin123!}
       APP_SEED_ANALYST_PASSWORD: ${APP_SEED_ANALYST_PASSWORD:-ChangeMeAnalyst123!}
@@ -41,7 +41,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - fraudsentinel-uploads:/var/lib/fraudsentinel/uploads
+      - fraudsentinel-uploads:/home/fraudsentinel/uploads
     networks:
       - fraudsentinel-net
 
