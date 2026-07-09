@@ -1,6 +1,11 @@
 # FraudSentinel
 
 
+
+
+**Project board:** https://github.com/users/Borgesjesk/projects/3
+**User stories:** [docs/USER_STORIES.md](docs/USER_STORIES.md)
+
 [![CI](https://github.com/Borgesjesk/carrier-fraud-sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Borgesjesk/carrier-fraud-sentinel/actions/workflows/ci.yml)
 
 A carrier fraud detection platform with role-based access control, multi-channel case management, and real-time alert routing.
