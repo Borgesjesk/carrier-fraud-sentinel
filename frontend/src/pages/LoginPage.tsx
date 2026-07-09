@@ -10,8 +10,10 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaCode, setMfaCode] = useState('');
 
-  const { login } = useAuth();
+  const { login, loginMfa } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,7 +25,18 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login({ username, password });
+      if (mfaRequired) {
+              await loginMfa({ username, password }, parseInt(mfaCode, 10));
+              navigate(from, { replace: true });
+              return;
+            }
+
+            const result = await login({ username, password });
+            if (result.mfaRequired) {
+        setMfaRequired(true);
+        setIsSubmitting(false);
+        return;
+      }
       navigate(from, { replace: true });
     } catch (err) {
       const axiosError = err as AxiosError<ProblemDetail>;
@@ -99,6 +112,28 @@ export function LoginPage() {
               />
             </div>
           </div>
+
+          {/* MFA code field */}
+                    {mfaRequired && (
+                      <div>
+                        <label className="block text-xs font-medium text-slate-300 mb-2 uppercase tracking-wide">
+                          6-digit code from your authenticator app
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]{6}"
+                          maxLength={6}
+                          value={mfaCode}
+                          onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                          disabled={isSubmitting}
+                          required
+                          autoFocus
+                          placeholder="123456"
+                          className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 text-center text-lg tracking-widest font-mono"
+                        />
+                      </div>
+                    )}
 
           {/* Error message */}
           {error && (

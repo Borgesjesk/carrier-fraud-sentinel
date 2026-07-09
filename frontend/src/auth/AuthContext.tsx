@@ -9,7 +9,8 @@ type AuthStatus = 'unknown' | 'authenticated' | 'unauthenticated';
 interface AuthContextValue {
   status: AuthStatus;
   user: AuthResponse | null;
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<{ mfaRequired: boolean }>;
+  loginMfa: (credentials: LoginRequest, code: number) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -42,8 +43,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
-  const login = async (credentials: LoginRequest) => {
-    const authResponse = await authService.login(credentials);
+  const login = async (credentials: LoginRequest): Promise<{ mfaRequired: boolean }> => {
+    const response = await authService.login(credentials);
+    if ('mfaRequired' in response) {
+      return { mfaRequired: true };
+    }
+    setUser(response);
+    setStatus('authenticated');
+    return { mfaRequired: false };
+  };
+
+  const loginMfa = async (credentials: LoginRequest, code: number): Promise<void> => {
+    const authResponse = await authService.loginMfa(credentials, code);
     setUser(authResponse);
     setStatus('authenticated');
   };
@@ -58,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ status, user, login, logout }}>
+    <AuthContext.Provider value={{ status, user, login, loginMfa, logout }}>
       {children}
     </AuthContext.Provider>
   );

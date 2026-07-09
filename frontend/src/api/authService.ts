@@ -4,9 +4,21 @@ import type { LoginRequest } from '../types/LoginRequest';
 
 const AUTH_BASE = '/api/v1/auth';
 
+export type LoginResponse =
+  | { mfaRequired: true }
+  | AuthResponse;
+
 export const authService = {
-  async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>(`${AUTH_BASE}/login`, credentials);
+  async login(credentials: LoginRequest): Promise<LoginResponse> {
+    const response = await apiClient.post<LoginResponse>(`${AUTH_BASE}/login`, credentials);
+    return response.data;
+  },
+
+  async loginMfa(credentials: LoginRequest, code: number): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>(
+      `${AUTH_BASE}/login/mfa`,
+      { ...credentials, code }
+    );
     return response.data;
   },
 
