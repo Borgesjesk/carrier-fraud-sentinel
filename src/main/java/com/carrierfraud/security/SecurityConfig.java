@@ -75,6 +75,7 @@ public class SecurityConfig {
                                 "/static/**", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/v1/info/**").permitAll()
                         .requestMatchers("/api/v1/complaints", "/api/v1/complaints/mine").hasRole("CLIENT")
                         .requestMatchers("/api/v1/alerts/*/comments/**").authenticated()
                         .requestMatchers("/api/v1/alerts/*/notes/**").authenticated()
