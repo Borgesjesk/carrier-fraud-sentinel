@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { MfaSetupPage } from './pages/MfaSetupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AlertDetailPage } from './pages/AlertDetailPage';
 import { ClientComplaintPage } from './pages/ClientComplaintPage';
@@ -26,6 +27,7 @@ function App() {
           <Route path="/alerts/:alertId" element={<ProtectedRoute><AlertDetailPage /></ProtectedRoute>} />
           <Route path="/complaints/new" element={<ProtectedRoute><ClientComplaintPage /></ProtectedRoute>} />
           <Route path="/complaints/mine" element={<ProtectedRoute><MyComplaintsPage /></ProtectedRoute>} />
+          <Route path="/settings/mfa" element={<ProtectedRoute><MfaSetupPage /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><RoleBasedHome /></ProtectedRoute>} />
           <Route path="*" element={<ProtectedRoute><RoleBasedHome /></ProtectedRoute>} />
         </Routes>

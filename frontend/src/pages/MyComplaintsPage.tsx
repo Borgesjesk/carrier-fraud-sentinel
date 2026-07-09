@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, LogOut, Loader2, AlertCircle, Plus, FileText } from 'lucide-react';
+import { ShieldCheck, LogOut, Loader2, AlertCircle, Plus, FileText, Shield } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { complaintService } from '../api/complaintService';
 import { alertReadService } from '../api/alertReadService';
@@ -99,8 +99,15 @@ export function MyComplaintsPage() {
               <div className="text-sm font-medium text-slate-200">{user?.username}</div>
               <div className="text-xs text-slate-400">CLIENT</div>
             </div>
-            <button
-              onClick={() => { logout(); navigate('/login'); }}
+            <Link
+                          to="/settings/mfa"
+                          className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-300 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition"
+                        >
+                          <Shield className="w-4 h-4" />
+                          <span>MFA</span>
+                        </Link>
+                        <button
+                          onClick={() => { logout(); navigate('/login'); }}
               className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-300 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition"
             >
               <LogOut className="w-4 h-4" />
