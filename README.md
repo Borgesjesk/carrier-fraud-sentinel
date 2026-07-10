@@ -3,6 +3,12 @@
 
 
 
+
+
+**Live backend:** https://fraudsentinel-api-mpb5.onrender.com  
+**Swagger UI:** https://fraudsentinel-api-mpb5.onrender.com/swagger-ui.html  
+(cold start ~30s on first request)
+
 **Project board:** https://github.com/users/Borgesjesk/projects/3
 **User stories:** [docs/USER_STORIES.md](docs/USER_STORIES.md)
 
