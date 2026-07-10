@@ -17,7 +17,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+  const from = '/';
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
