@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ShieldCheck, User, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { AxiosError } from 'axios';
@@ -15,7 +15,6 @@ export function LoginPage() {
 
   const { login, loginMfa } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const from = '/';
 
