@@ -11,8 +11,11 @@ import { ClientComplaintPage } from './pages/ClientComplaintPage';
 import { MyComplaintsPage } from './pages/MyComplaintsPage';
 
 function RoleBasedHome() {
-  const { user } = useAuth();
-  return <Navigate to={user?.role === 'CLIENT' ? '/complaints/mine' : '/dashboard'} replace />;
+  const { user, status } = useAuth();
+
+  if (status === 'unknown') return null;
+  if (!user) return <Navigate to='/login' replace />;
+  return <Navigate to={user.role === 'CLIENT' ? '/complaints/mine' : '/dashboard'} replace />;
 }
 
 function App() {
