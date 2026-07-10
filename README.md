@@ -5,6 +5,7 @@
 
 
 
+**Live app:** https://fraudsentinel-app.onrender.com  
 **Live backend:** https://fraudsentinel-api-mpb5.onrender.com  
 **Swagger UI:** https://fraudsentinel-api-mpb5.onrender.com/swagger-ui.html  
 (cold start ~30s on first request)
