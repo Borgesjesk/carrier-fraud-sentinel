@@ -71,6 +71,7 @@ export function DashboardPage() {
 
   const filteredAlerts = alerts.filter((alert) => {
     if (filter === 'mine') return alert.assignedTo === user?.username;
+    if (filter === 'unassigned') return alert.status === 'UNASSIGNED';
     if (filter === 'stale') return alert.isStale === true;
     return true;
   });
