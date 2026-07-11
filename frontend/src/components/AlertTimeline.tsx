@@ -76,8 +76,8 @@ export function AlertTimeline({ alert, comments = [] }: Props) {
       color: c.authorRole === 'CLIENT'
         ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
         : 'text-sky-400 bg-sky-500/10 border-sky-500/30',
-      title: `Comment by ${c.authorUsername}`,
-      description: c.body ? (c.body.length > 80 ? c.body.slice(0, 80) + '...' : c.body) : '(no message)',
+      title: `Comment by ${c.author}`,
+      description: c.content ? (c.content.length > 80 ? c.content.slice(0, 80) + '...' : c.content) : '(no message)',
     });
   });
 
