@@ -33,6 +33,7 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned' | 'stale'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const previousCountsRef = useRef<Record<string, number>>({});
@@ -79,10 +80,16 @@ export function DashboardPage() {
     }, []);
 
   const filteredAlerts = alerts.filter((alert) => {
-    if (filter === 'mine') return alert.assignedTo === user?.username;
-    if (filter === 'unassigned') return alert.status === 'UNASSIGNED';
-    if (filter === 'stale') return alert.isStale === true;
-    return true;
+      if (filter === 'mine' && alert.assignedTo !== user?.username) return false;
+      if (filter === 'unassigned' && alert.status !== 'UNASSIGNED') return false;
+      if (filter === 'stale' && !alert.isStale) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const carrier = alert.carrierName?.toLowerCase() || '';
+        const reporter = alert.createdBy?.toLowerCase() || '';
+        if (!carrier.includes(q) && !reporter.includes(q)) return false;
+      }
+      return true;
   });
 
   const stats = {
@@ -165,9 +172,18 @@ export function DashboardPage() {
 
         {/* Alerts table */}
         <section>
-          <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-base font-medium text-slate-200">Recent alerts</h2>
-                      <div className="flex gap-1 bg-slate-900/50 border border-slate-800 rounded-lg p-1">
+          <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+                                <h2 className="text-base font-medium text-slate-200">Recent alerts</h2>
+                                <div className="flex-1 max-w-xs">
+                                  <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search carrier or reporter..."
+                                    className="w-full px-3 py-1.5 text-sm bg-slate-900/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                                  />
+                                </div>
+                                <div className="flex gap-1 bg-slate-900/50 border border-slate-800 rounded-lg p-1">
                         {(['all', 'unassigned', 'mine', 'stale'] as const).map((f) => (
                           <button
                             key={f}
