@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, LogOut, AlertCircle, Loader2, Shield } from 'lucide-react';
+import { ShieldCheck, LogOut, AlertCircle, Loader2, Shield, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { alertService } from '../api/alertService';
 import { alertReadService } from '../api/alertReadService';
@@ -119,6 +119,13 @@ export function DashboardPage() {
               <div className="text-sm font-medium text-slate-200">{user?.username}</div>
               <div className="text-xs text-slate-400">{user?.role}</div>
             </div>
+            <Link
+                          to="/simulate"
+                          className="flex items-center gap-2 px-3 py-1.5 text-sm text-violet-300 hover:text-violet-100 hover:bg-slate-800 rounded-lg transition"
+                        >
+                          <Zap className="w-4 h-4" />
+                          <span>Simulate</span>
+                        </Link>
             <Link
                           to="/settings/mfa"
                           className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-300 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition"
