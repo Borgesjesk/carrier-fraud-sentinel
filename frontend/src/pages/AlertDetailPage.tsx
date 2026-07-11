@@ -131,7 +131,8 @@ export function AlertDetailPage() {
             <div className="flex items-start justify-between mb-6">
               <div>
                 <p className="text-xs text-slate-500 font-mono mb-1">{alert.alertId}</p>
-                <h1 className="text-2xl font-semibold tracking-tight">{alert.carrierName}</h1>
+                <h1 className="text-2xl font-semibold tracking-tight text-red-300">{alert.carrierName}</h1>
+                {alert.createdBy && <p className="text-sm text-slate-400 mt-1">Reported by <span className="text-emerald-300">{alert.createdBy}</span></p>}
               </div>
               <div className="flex gap-2">
                 <span className={`px-3 py-1 text-xs font-medium rounded border ${SEVERITY_STYLES[alert.severity]}`}>
