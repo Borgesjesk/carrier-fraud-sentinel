@@ -6,6 +6,9 @@ import { CommentsThread } from '../components/CommentsThread';
 import { alertService } from '../api/alertService';
 import { alertReadService } from '../api/alertReadService';
 import { NotesThread } from '../components/NotesThread';
+import { AlertTimeline } from '../components/AlertTimeline';
+import { commentService } from '../api/commentService';
+import type { Comment } from '../types/Comment';
 import type { Alert, Severity, AlertStatus } from '../types/Alert';
 
 const SEVERITY_STYLES: Record<Severity, string> = {
@@ -36,6 +39,7 @@ export function AlertDetailPage() {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferTarget, setTransferTarget] = useState('LEGAL');
   const [transferReason, setTransferReason] = useState('');
+  const [timelineComments, setTimelineComments] = useState<Comment[]>([]);
 
   useEffect(() => {
       if (!alertId) return;
@@ -44,6 +48,7 @@ export function AlertDetailPage() {
         .catch(() => setError('Alert not found or you do not have permission to view it.'))
         .finally(() => setIsLoading(false));
 
+      commentService.list(alertId).then(setTimelineComments).catch(() => {});
       alertReadService.markAsRead(alertId).catch(() => {
       });
     }, [alertId]);
@@ -222,7 +227,11 @@ export function AlertDetailPage() {
             </section>
             )}
 
-            {user?.role !== 'CLIENT' && (
+            <div className="mt-6">
+                          <AlertTimeline alert={alert} comments={timelineComments} />
+                        </div>
+
+                        {user?.role !== 'CLIENT' && (
                           <div className="mt-6">
                             <NotesThread alertId={alert.alertId} />
                           </div>

@@ -30,6 +30,8 @@ export interface Alert {
   status: AlertStatus;
   clientVisibleStatus: AlertStatus;
   createdDate: string;
+  acceptedDate?: string;
+  resolvedDate?: string;
   description?: string;
   documents?: DocumentMetadata[];
   createdBy?: string;
