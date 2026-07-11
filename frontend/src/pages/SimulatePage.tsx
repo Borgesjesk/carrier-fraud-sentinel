@@ -265,7 +265,7 @@ export function SimulatePage() {
                     <span className="text-xs font-medium uppercase tracking-wider opacity-80">Severity</span>
                     <span className="text-2xl font-bold">{result.severity}</span>
                   </div>
-                  <div className="text-sm opacity-90">Weighted risk score: {(result.riskScore * 100).toFixed(1)}%</div>
+                  <div className="text-sm opacity-90">Weighted risk score: {Math.min(100, (result.riskScore / 3) * 100).toFixed(1)}%</div>
                 </div>
 
                 <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
