@@ -101,8 +101,13 @@ export function SimulatePage() {
           <Link to="/dashboard" className="flex items-center gap-2 text-slate-300 hover:text-slate-100">
             <ShieldCheck className="w-6 h-6 text-sky-400" />
             <h1 className="text-lg font-semibold tracking-tight">FraudSentinel</h1>
+            <span className="text-slate-600">/</span>
+            <span className="text-sm text-slate-400">Simulate</span>
           </Link>
           <div className="flex items-center gap-4">
+            <Link to="/dashboard" className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-300 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition">
+              <span>Back to dashboard</span>
+            </Link>
             <div className="text-right">
               <div className="text-sm font-medium text-slate-200">{user?.username}</div>
               <div className="text-xs text-slate-400">{user?.role}</div>
