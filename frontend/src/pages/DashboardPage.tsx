@@ -96,7 +96,9 @@ export function DashboardPage() {
     total: alerts.length,
     critical: alerts.filter((a) => a.severity === 'CRITICAL').length,
     high: alerts.filter((a) => a.severity === 'HIGH').length,
-    medium: alerts.filter((a) => a.severity === 'MEDIUM').length,
+    medium: alerts.filter((a) => a.severity === "MEDIUM").length,
+    unassigned: alerts.filter((a) => a.status === "UNASSIGNED").length,
+    stale: alerts.filter((a) => a.isStale === true).length,
   };
 
   const formatDate = (iso: string) => {
@@ -175,6 +177,8 @@ export function DashboardPage() {
           <StatCard label="Critical" value={stats.critical} accent="text-red-300" />
           <StatCard label="High" value={stats.high} accent="text-orange-300" />
           <StatCard label="Medium" value={stats.medium} accent="text-amber-300" />
+          <StatCard label="Unassigned" value={stats.unassigned} accent="text-slate-300" />
+          <StatCard label="Stale (>72h)" value={stats.stale} accent="text-amber-400" />
         </div>
 
         {/* Alerts table */}
