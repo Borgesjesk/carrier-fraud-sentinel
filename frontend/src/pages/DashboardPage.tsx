@@ -216,7 +216,8 @@ export function DashboardPage() {
                 <thead className="bg-slate-900/50">
                   <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
                     <th className="px-4 py-3 font-medium">Alert ID</th>
-                    <th className="px-4 py-3 font-medium">Carrier</th>
+                    <th className="px-4 py-3 font-medium">Carrier accused</th>
+                    <th className="px-4 py-3 font-medium">Reported by</th>
                     <th className="px-4 py-3 font-medium">Severity</th>
                     <th className="px-4 py-3 font-medium">Rule</th>
                     <th className="px-4 py-3 font-medium">Department</th>
@@ -240,7 +241,12 @@ export function DashboardPage() {
                             )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-slate-200">{alert.carrierName}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-red-300">{alert.carrierName}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {alert.createdBy ? <span className="text-emerald-300">{alert.createdBy}</span> : <span className="text-slate-500">—</span>}
+                      </td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 text-xs font-medium rounded border ${SEVERITY_STYLES[alert.severity]}`}>
                           {alert.severity}
