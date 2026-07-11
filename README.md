@@ -1,68 +1,68 @@
 # FraudSentinel
 
-
-
-
-
-
 **Live app:** https://fraudsentinel-app.onrender.com  
 **Live backend:** https://fraudsentinel-api-mpb5.onrender.com  
 **Swagger UI:** https://fraudsentinel-api-mpb5.onrender.com/swagger-ui.html  
-(cold start ~30s on first request)
+_(cold start ~30s on first request)_
 
-**Project board:** https://github.com/users/Borgesjesk/projects/3
+**Project board:** https://github.com/users/Borgesjesk/projects/3  
 **User stories:** [docs/USER_STORIES.md](docs/USER_STORIES.md)
 
 [![CI](https://github.com/Borgesjesk/carrier-fraud-sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Borgesjesk/carrier-fraud-sentinel/actions/workflows/ci.yml)
 
-A carrier fraud detection platform with role-based access control, multi-channel case management, and real-time alert routing.
+A carrier fraud detection platform with role-based access control, multi-channel case management, real-time alert routing, and a full auth stack including MFA.
 
 Built as the final project for the IT Academy Barcelona Java Backend bootcamp. The design comes directly from six years of fraud investigation work at a European freight exchange, where I dealt daily with the patterns this system detects: carriers gaming payment terms, escalating offer prices, and accumulating complaints across multiple categories.
 
+---
 
 ## Screenshots
 
-### Login
-![Login page](docs/screenshots/01-login.png)
+### Login and password recovery
+| Login | Forgot password |
+|-------|-----------------|
+| ![Login](docs/screenshots/01-login.png) | ![Forgot](docs/screenshots/02-forgot-password.png) |
 
-### Staff dashboard (RBAC-filtered alerts)
-![Dashboard](docs/screenshots/02-dashboard-admin.png)
+### Multi-factor authentication
+| MFA challenge | MFA setup QR | Backup codes |
+|---------------|--------------|--------------|
+| ![MFA challenge](docs/screenshots/03-login-mfa-challenge.png) | ![MFA setup](docs/screenshots/04-mfa-setup-qr.png) | ![Backup codes](docs/screenshots/05-mfa-backup-codes.png) |
 
-### Alert detail with workflow, documents, and comments
-![Alert detail](docs/screenshots/03-alert-detail.png)
+### Dashboard and case management
+| Dashboard (color-coded status + two-party columns) | Alert detail with timeline |
+|-----------------------------------------------------|----------------------------|
+| ![Dashboard](docs/screenshots/06-dashboard-admin.png) | ![Alert detail](docs/screenshots/07-alert-detail.png) |
 
-### Client complaint form (with document categories)
-![Client form](docs/screenshots/04-client-form.png)
+### Rule engine playground
+![Simulate fraud](docs/screenshots/08-simulate-fraud.png)
 
-### Client case list with unread notifications
-![My cases](docs/screenshots/05-my-cases.png)
+### Client complaint list
+![Client complaints](docs/screenshots/09-client-complaints.png)
 
-### Transfer alert modal (staff can reroute cases between departments)
-![Transfer modal](docs/screenshots/06-transfer-modal.png)
+### Swagger UI and CI
+| Swagger UI | GitHub Actions |
+|------------|----------------|
+| ![Swagger](docs/screenshots/10-swagger-ui.png) | ![CI](docs/screenshots/11-github-actions.png) |
 
-### Internal notes (staff-only, invisible to clients)
-![Internal notes](docs/screenshots/07-internal-notes.png)
+### Project board and analytics
+| Project board | Analytics |
+|---------------|-----------|
+| ![Project](docs/screenshots/12-project-board.png) | ![Analytics](docs/screenshots/13-analytics.png) |
 
-### Stale alert detection (72h without activity)
-![Stale badge](docs/screenshots/08-stale-badge.png)
-
-### Transfer alert modal (staff can reroute cases between departments)
-
-### Internal notes (staff-only, invisible to clients)
-
-### Stale alert detection (72h without activity)
+### Alert timeline
+![Timeline](docs/screenshots/14-alert-timeline.png)
 
 ---
 
 ## What it does
 
-FraudSentinel scores carrier transactions in real time, generates alerts with calculated severity, and routes them to the responsible department automatically. From the moment a case enters the system — whether triggered by detection rules or submitted by a client — it follows a tracked lifecycle: routed, claimed, investigated, resolved or escalated, with full audit trail and bidirectional communication.
+FraudSentinel scores carrier transactions in real time through a rule engine, generates alerts with calculated severity, and routes them to the responsible department automatically. From the moment a case enters the system — whether triggered by detection rules or submitted by a client — it follows a tracked lifecycle: routed, claimed, investigated, resolved, or escalated, with full audit trail, bidirectional communication, and time-stamped events.
 
-There are two distinct user flows:
+Two distinct user flows:
 
-**Internal staff** (Admin, Analyst, Compliance) see the alerts that fall under their role's visible departments. They can claim a case, investigate it, resolve it with a written summary, or escalate to another team. Every case has a comment thread where staff and the affected client can communicate.
+**Internal staff** (Admin, Analyst, Compliance) see alerts filtered by their role's visible departments. They can claim a case, investigate it, resolve it, escalate, or transfer to another department. Every case has a comment thread where staff and the affected client can communicate. Staff can also manually run the rule engine on any transaction via the Simulate page.
 
-**External clients** (carriers submitting complaints) log in to a separate flow. They cannot see other carriers' cases or internal alerts. They submit a complaint with a description and supporting documents (PDF or images), then track the status of their case and respond to investigator questions through the same comment thread.
+**External clients** (carriers submitting complaints) log in to a separate flow. They cannot see other carriers' cases or internal notes. They submit a complaint with a description and supporting documents (PDF or images), then track the status of their case and respond to investigator questions through the comment thread.
 
 ---
 
@@ -82,95 +82,52 @@ This is a portfolio project, but it's not generic. It's the system I wished exis
 - Java 21 (Eclipse Temurin)
 - Spring Boot 3.5.14 (LTS)
 - MongoDB Atlas (replica set, eu-west-3)
-- Spring Security with JWT signed HS384
-- BCrypt password hashing, strength 12
-- HttpOnly + Secure + SameSite=Strict cookie authentication
-- Multipart file upload with disk-based storage (Strategy pattern, ready to swap for S3 or MinIO)
+- Spring Security with JWT (HS256), BCrypt password hashing
+- HttpOnly + Secure + SameSite cookie authentication
+- Bucket4j for rate limiting
+- googleauth for TOTP-based MFA
+- Multipart file upload with disk-based storage (Strategy pattern, swap-ready for S3)
 - RFC 7807 Problem Details for all error responses
+- Springdoc OpenAPI 2.8.4 for Swagger UI
 
 **Frontend**
-- React 19 with TypeScript 5
+- React 19 with TypeScript 5 (strict mode)
 - Vite 8
-- Tailwind CSS v4 (utility-first, dark mode by default)
+- Tailwind CSS v4 (dark mode by default)
 - React Router 7 with role-based protected routes
-- Axios configured with `withCredentials` so the HttpOnly cookie travels automatically
+- Axios with silent auto-refresh interceptor
+- qrcode.react for inline MFA QR generation
+- Recharts for analytics visualization
 - Lucide React for icons
 
 **DevSecOps**
-- OWASP Dependency-Check (fails build on CVSS ≥ 7.0)
+- OWASP Dependency-Check (fails build on CVSS >= 7.0)
 - SpotBugs + FindSecBugs for static analysis
-- JaCoCo with a 50 percent line coverage gate (ratcheting toward 80)
-- CycloneDX 1.5 SBOM
-- Maven Enforcer rules for Java 21+ and Maven 3.9+
-- GitHub Actions CI on every push
+- JaCoCo coverage gate
+- CycloneDX SBOM generation
+- GitHub Actions CI/CD (backend + frontend + Docker build)
+- Deployed on Render (backend + static site)
 
 ---
 
-## Security choices
+## Auth stack
 
-Most of the security decisions in this project were deliberate, not accidental. A few I want to call out:
+The auth layer went deep because carrier fraud investigation is where credentials matter most.
 
-**JWT lives in an HttpOnly cookie, not localStorage.** This means JavaScript cannot read the token. You can verify this in DevTools: while authenticated, `document.cookie` returns an empty string. An XSS payload that tries `localStorage.getItem('token')` finds nothing because there's nothing to find. The cookie still travels on every request because the browser sends it automatically with `Cookie:` header. This is structural protection, not defensive coding.
-
-**SameSite=Strict on the cookie** mitigates CSRF without needing a separate CSRF token mechanism. Combined with same-origin policy, cross-site requests cannot carry the session cookie.
-
-**RBAC is enforced server-side, not in the UI.** When an analyst loads the dashboard, the backend queries only the alerts in their visible departments. The frontend doesn't know other alerts exist. An attacker opening DevTools cannot reveal alerts they shouldn't see, because the backend never sent them in the first place.
-
-**Path traversal protection in file storage.** Every read, write, and delete operation in `DiskDocumentStorage` resolves the path and verifies it starts with the configured storage root. Filenames use UUIDs, never user-supplied strings.
-
-**Secrets are externalized.** The JWT signing key, MongoDB credentials, cookie security flags, and seed user passwords all come from environment variables. The repo has `env.example` showing what's needed; the actual `.env` is gitignored.
-
-**23 CVEs patched.** Spring Boot's own dependency BOM lags behind upstream fixes for Tomcat and Log4j. I overrode both to current secure versions (Tomcat 10.1.55, Log4j 2.25.4).
+- **HttpOnly cookie JWT** — token invisible to JavaScript; XSS payloads that try `document.cookie` or `localStorage.getItem('token')` find nothing
+- **Access token 1h + refresh token 7d** — short blast radius on token theft; refresh persisted in MongoDB so it can be revoked instantly
+- **Refresh token rotation with theft detection** — every refresh issues a new token and revokes the old one; reusing a revoked token triggers revocation of ALL of the user's refresh tokens
+- **TOTP-based MFA** — enrollment via inline QR code + 10 backup codes; login flow: password → MFA challenge → session
+- **Rate limiting** — Bucket4j token buckets, 5 login attempts/min and 60 general requests/min per IP; 429 responses in RFC 7807 format
+- **Password reset with time-limited tokens** — 15-minute TTL, silent-fail on unknown email (prevents user enumeration)
+- **RBAC enforced server-side** — the backend queries only the alerts each role should see; the frontend never receives forbidden data
+- **Path traversal protection** — file storage resolves paths and verifies containment inside the storage root; filenames use UUIDs
 
 ---
-
-## Architecture
-
-```
-src/main/java/com/carrierfraud/
-├── domain/          Entities, enums, value objects, business rules
-├── application/     Services, use cases, detection rules (Strategy pattern)
-├── infrastructure/  MongoDB repositories + disk storage implementation
-├── api/             REST controllers, DTOs, exception handlers
-├── security/        Spring Security config, JWT, filter chain, auth controller
-├── audit/           Tamper-resistant audit log
-└── config/          Cookie, CORS, MongoDB index configuration
-
-frontend/
-├── src/types/       TypeScript interfaces matching backend DTOs
-├── src/api/         Axios client + service modules
-├── src/auth/        AuthContext with three-state session machine
-├── src/components/  Reusable components (ProtectedRoute, CommentsThread)
-└── src/pages/       Login, Dashboard, AlertDetail, ClientComplaint, MyComplaints
-```
-
----
-
-### Refresh tokens with revocation
-
-Access JWT expires in 1 hour (short blast radius on token theft). Refresh
-token is stored in MongoDB with a 7-day TTL and can be revoked instantly
-via the logout endpoint. Frontend axios interceptor auto-refreshes on any
-401, retries the original request transparently. User keeps working;
-attacker gets 1 hour max.
-
-### Rate limiting
-
-Bucket4j token buckets keyed by IP:
-- POST /api/v1/auth/login: 5 attempts per minute (brute force defense)
-- All other endpoints: 60 requests per minute per client
-
-429 responses follow RFC 7807 Problem Details. Reset window is 60 seconds.
-
-### Interactive API documentation
-
-Swagger UI live at /swagger-ui.html. All 20+ endpoints organized by tag
-(Authentication, Alerts, Complaints, Comments, Notes, Analytics). Reviewers
-can explore the contract and try requests without cloning the repo.
 
 ## Detection rules
 
-Three rules implemented with the Strategy pattern. Open for extension, closed for modification — adding a new rule is a new class implementing the same interface, no changes to the dispatcher.
+Three rules implemented with the Strategy pattern. Adding a new rule is a new class implementing the same interface, no changes to the dispatcher.
 
 | Rule | Triggers on | Severity logic | Routes to |
 |------|-------------|----------------|-----------|
@@ -178,7 +135,9 @@ Three rules implemented with the Strategy pattern. Open for extension, closed fo
 | OfferPriceEscalationRule | Offer price more than 50% above baseline | 0.0 to 1.0 by deviation | FRAUD_INVESTIGATION |
 | ComplaintAccumulationRule | Multiple complaint categories accumulating | 0.0 to 1.0 by incident weight | LEGAL or INSURANCE |
 
-Domain validation rejects impossible inputs at the boundary — for example, 25 incidents on 2 offers returns 422 with an RFC 7807 problem document, not a silent miscalculation.
+Domain validation rejects impossible inputs at the boundary — for example, 25 incidents on 2 offers returns 422 with an RFC 7807 problem document.
+
+Staff can run the rule engine interactively via the Simulate page: enter transaction attributes, watch the rules score the input in real time, and see the resulting alert on the dashboard.
 
 ---
 
@@ -191,34 +150,63 @@ Domain validation rejects impossible inputs at the boundary — for example, 25 
 | ANALYST | MEDIATION, FRAUD_INVESTIGATION, INSURANCE, CUSTOMER_SERVICE | Day-to-day investigation work |
 | CLIENT | None (own cases only) | External carrier submitting a complaint |
 
-CLIENT is fundamentally different from the others — they don't have departmental visibility at all. They access only their own submitted complaints, the documents they attached, and the comment thread on those cases. The authorization checks for CLIENT happen at the controller level, comparing `authentication.getName()` against the alert's `createdBy` field.
+CLIENT is fundamentally different from the others — they don't have departmental visibility. They access only their own submitted complaints, the documents they attached, and the comment thread on those cases. Authorization for CLIENT is enforced at the controller by comparing `authentication.getName()` against the alert's `createdBy` field.
+
+---
+
+## Architecture
+
+```
+src/main/java/com/carrierfraud/
+├── domain/          Entities, enums, value objects, business rules
+├── application/     Services, use cases, detection rules (Strategy pattern)
+├── infrastructure/  MongoDB repositories + disk storage implementation
+├── api/             REST controllers, DTOs, exception handlers
+├── security/        Spring Security config, JWT, MFA, password reset, refresh tokens
+├── audit/           Tamper-resistant audit log
+└── config/          Cookie, CORS, MongoDB index configuration
+
+frontend/
+├── src/types/       TypeScript interfaces matching backend DTOs
+├── src/api/         Axios client + service modules
+├── src/auth/        AuthContext with three-state session machine
+├── src/components/  Reusable components (Timeline, CommentsThread, ProtectedRoute)
+└── src/pages/       Login, Dashboard, AlertDetail, Analytics, Simulate, MfaSetup, ...
+```
 
 ---
 
 ## Key endpoints
 
-**Authentication**
-- `POST /api/v1/auth/login` — issues HttpOnly cookie, returns `{username, role}`
-- `GET /api/v1/auth/me` — session bootstrap on page refresh
-- `POST /api/v1/auth/logout` — clears cookie
+**Authentication and account**
+- `POST /api/v1/auth/login` — issues HttpOnly cookie or returns `{mfaRequired: true}`
+- `POST /api/v1/auth/login/mfa` — completes MFA challenge
+- `POST /api/v1/auth/refresh` — silent access-token refresh (called automatically on 401)
+- `POST /api/v1/auth/forgot-password` — request password reset link
+- `POST /api/v1/auth/reset-password` — apply reset with time-limited token
+- `POST /api/v1/auth/mfa/setup` + `/verify-setup` — enroll TOTP with backup codes
+- `GET /api/v1/auth/me` — session bootstrap
+- `POST /api/v1/auth/logout` — clears cookies, revokes refresh token
 
 **Alerts (staff)**
 - `GET /api/v1/transactions/alerts` — list filtered by role
 - `GET /api/v1/transactions/alerts/{id}` — single alert with RBAC check
-- `PUT /api/v1/transactions/alerts/{id}/{action}` — workflow actions: accept, investigate, resolve, escalate
+- `PUT /api/v1/transactions/alerts/{id}/accept|investigate|resolve|escalate|transfer` — workflow actions
+- `POST /api/v1/transactions/analyze` — run rule engine on a transaction (used by Simulate)
 
 **Complaints (client)**
 - `POST /api/v1/complaints` — multipart submission with description and documents
-- `GET /api/v1/complaints/mine` — own cases, ordered by creation date desc
-- `GET /api/v1/complaints/{id}/documents/{docId}` — secure document download with original filename preserved
+- `GET /api/v1/complaints/mine` — own cases ordered by date desc
+- `GET /api/v1/complaints/{id}/documents/{docId}` — secure download
 
-**Comments**
-- `GET /api/v1/alerts/{id}/comments` — chronological thread
-- `POST /api/v1/alerts/{id}/comments` — add comment
+**Communication**
+- `GET|POST /api/v1/alerts/{id}/comments` — comment thread
+- `GET|POST /api/v1/alerts/{id}/notes` — internal notes (staff-only)
+- `GET /api/v1/alerts/unread-counts` — unread badge counts
+- `POST /api/v1/alerts/{id}/read` — mark as read
 
-**Notifications**
-- `GET /api/v1/alerts/unread-counts` — map of alertId → unread comment count for the current user
-- `POST /api/v1/alerts/{id}/read` — mark alert as read (fires when AlertDetail opens)
+**Public**
+- `GET /api/v1/info/features` — anonymous version + feature list
 
 ---
 
@@ -232,14 +220,9 @@ cd carrier-fraud-sentinel
 docker compose up -d
 ```
 
-Backend on http://localhost:8080, Swagger UI at /swagger-ui.html. Four demo
-users are seeded automatically: admin, analyst, compliance, client1
-(default passwords are in docker-compose.yml — override via .env for
-non-local use).
+Backend on http://localhost:8080, Swagger UI at /swagger-ui.html. Four demo users are seeded automatically: `admin`, `analyst`, `compliance`, `client1`. Default passwords are in `docker-compose.yml` — override via `.env` for non-local use.
 
 ### Manual setup
-
-
 
 **Prerequisites**
 - Java 21 or newer
@@ -247,59 +230,31 @@ non-local use).
 - MongoDB Atlas connection string (free tier works)
 
 **Backend**
-
 ```bash
 cp env.example .env
-# Edit .env with your MONGODB_URI, JWT_SECRET, seed passwords, cookie settings
+# Edit .env with your MONGODB_URI, JWT_SECRET, seed passwords
 set -a; source .env; set +a
 ./mvnw spring-boot:run
 ```
 
-The backend runs on http://localhost:8080.
-
 **Frontend**
-
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-The frontend runs on http://localhost:5173. It expects `VITE_API_BASE_URL=http://localhost:8080` in `frontend/.env.local`.
-
-**Demo users**
-
-The dev profile seeds four users on first startup using passwords from environment variables (`SEED_ADMIN_PASSWORD`, `SEED_ANALYST_PASSWORD`, `SEED_COMPLIANCE_PASSWORD`, `SEED_CLIENT_PASSWORD`):
-
-- `admin` — ADMIN role
-- `analyst` — ANALYST role
-- `compliance` — COMPLIANCE role
-- `client1` — CLIENT role
+Frontend on http://localhost:5173. Expects `VITE_API_BASE_URL=http://localhost:8080` in `frontend/.env.local`.
 
 ---
 
 ## Testing
 
 ```bash
-./mvnw test                                  # unit + integration tests
+./mvnw test                                  # 139+ unit + integration tests
 ./mvnw verify -P security                    # full DevSecOps pipeline
-./mvnw org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom  # generate SBOM
+./mvnw org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom  # SBOM
 ```
-
-Coverage gate is currently 50 percent on the `application` and `domain` packages, ratcheting toward 80.
-
----
-
-## What's next
-
-Implemented as the bootcamp deliverable, but realistic next steps if I keep building:
-
-- WebSocket or SSE for real-time push notifications (currently 30-second polling on the client case list)
-- Alert reassignment between departments with audit trail
-- Status change timeline on the AlertDetail page
-- E2E tests with Playwright
-- Production deployment via Docker Compose (Dockerfile already in repo)
-- Migrate document storage from local disk to S3 or MinIO (the `DocumentStorage` interface is already set up for this)
 
 ---
 
