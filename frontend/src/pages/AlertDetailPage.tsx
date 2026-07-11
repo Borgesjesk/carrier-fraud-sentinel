@@ -144,7 +144,7 @@ export function AlertDetailPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-8">
-                          <DetailCard label="Risk score" value={(alert.riskScore * 100).toFixed(0) + '%'} />
+                          <DetailCard label="Risk score" value={Math.min(100, (alert.riskScore / 3) * 100).toFixed(0) + '%'} />
                           <DetailCard label="Triggered rule" value={alert.triggeredRules} />
                           <DetailCard label="Assigned department" value={alert.assignedDepartment} />
                           <DetailCard label="Created" value={formatDate(alert.createdDate)} />
