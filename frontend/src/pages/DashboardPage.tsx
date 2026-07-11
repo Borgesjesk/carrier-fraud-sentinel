@@ -17,6 +17,15 @@ const SEVERITY_STYLES: Record<Severity, string> = {
   CRITICAL: 'bg-red-500/15 text-red-300 border-red-500/30',
 };
 
+const STATUS_STYLES: Record<string, string> = {
+  UNASSIGNED: 'bg-slate-700/50 text-slate-300 border-slate-600/50',
+  ASSIGNED: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
+  ACCEPTED: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
+  IN_PROGRESS: 'bg-violet-500/15 text-violet-300 border-violet-500/30',
+  RESOLVED: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  ESCALATED: 'bg-red-500/15 text-red-300 border-red-500/30',
+};
+
 export function DashboardPage() {
   const { user, logout } = useAuth();
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -254,7 +263,7 @@ export function DashboardPage() {
                       </td>
                       <td className="px-4 py-3 text-slate-400 text-xs">{alert.triggeredRules}</td>
                       <td className="px-4 py-3 text-slate-300 text-xs">{alert.assignedDepartment}</td>
-                      <td className="px-4 py-3 text-slate-300 text-xs"><div className="flex items-center gap-1.5">{alert.status}{alert.isStale && (<AlertTriangle className="w-3.5 h-3.5 text-amber-400" />)}</div></td>
+                      <td className="px-4 py-3"><div className="flex items-center gap-1.5"><span className={`px-2 py-1 text-xs font-medium rounded border ${STATUS_STYLES[alert.status] || STATUS_STYLES.UNASSIGNED}`}>{alert.status}</span>{alert.isStale && (<AlertTriangle className="w-3.5 h-3.5 text-amber-400" />)}</div></td>
                       <td className="px-4 py-3 text-slate-400 text-xs">{formatDate(alert.createdDate)}</td>
                     </tr>
                   ))}
