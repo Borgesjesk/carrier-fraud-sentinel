@@ -133,20 +133,70 @@ public class ProfileController {
         }
     }
 
+    @GetMapping("/admin/users")
+    public ResponseEntity<java.util.List<Map<String, Object>>> listUsers(Authentication auth) {
+        User caller = load(auth.getName());
+        if (caller.getRole() != com.carrierfraud.domain.Role.ADMIN) {
+            throw new SecurityException("Only administrators can list users");
+        }
+        java.util.List<Map<String, Object>> users = userRepository.findAll().stream()
+                .map(u -> {
+                    Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("username", u.getUsername());
+                    m.put("email", u.getEmail() != null ? u.getEmail() : "");
+                    m.put("role", u.getRole().name());
+                    m.put("mfaEnabled", u.isMfaEnabled());
+                    m.put("knownIpsCount", u.getKnownIps() != null ? u.getKnownIps().size() : 0);
+                    m.put("createdAt", u.getCreatedAt() != null ? u.getCreatedAt().toString() : "");
+                    return m;
+                })
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(users);
+    }
+
+    @PostMapping("/admin/users/{username}/mfa/disable")
+    public ResponseEntity<Void> adminDisableMfa(@PathVariable String username, Authentication auth) {
+        User caller = load(auth.getName());
+        if (caller.getRole() != com.carrierfraud.domain.Role.ADMIN) {
+            throw new SecurityException("Only administrators can disable MFA");
+        }
+        User target = load(username);
+        target.setMfaEnabled(false);
+        target.setMfaSecret(null);
+        target.setBackupCodes(new java.util.ArrayList<>());
+        userRepository.save(target);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/admin/users/{username}/reset-ips")
+    public ResponseEntity<Void> resetKnownIps(@PathVariable String username, Authentication auth) {
+        User caller = load(auth.getName());
+        if (caller.getRole() != com.carrierfraud.domain.Role.ADMIN) {
+            throw new SecurityException("Only administrators can reset IPs");
+        }
+        User target = load(username);
+        target.setKnownIps(new java.util.ArrayList<>());
+        userRepository.save(target);
+        return ResponseEntity.noContent().build();
+    }
+
     public record ChangePasswordRequest(
             @NotBlank String oldPassword,
             @NotBlank @Size(min = 12) String newPassword,
             Integer totpCode
-    ) {}
+    ) {
+    }
 
     public record ChangeEmailRequest(
             @NotBlank @Email String newEmail,
             @NotBlank String password,
             Integer totpCode
-    ) {}
+    ) {
+    }
 
     public record DisableMfaRequest(
             @NotBlank String password,
             Integer totpCode
-    ) {}
+    ) {
+    }
 }

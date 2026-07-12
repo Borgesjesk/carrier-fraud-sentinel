@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, LogOut, AlertCircle, Loader2, Shield, Zap, BarChart3, Download, User } from 'lucide-react';
+import { ShieldCheck, LogOut, AlertCircle, Loader2, Shield, Zap, BarChart3, Download, User, Users } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { alertService } from '../api/alertService';
 import { alertReadService } from '../api/alertReadService';
@@ -207,6 +207,15 @@ const toggleSelect = (id: string) => {
               <div className="text-xs text-slate-400">{user?.role}</div>
             </div>
             <NotificationBell />
+            {user?.role === 'ADMIN' && (
+                          <Link
+                            to="/admin/users"
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-300 hover:text-red-100 hover:bg-slate-800 rounded-lg transition"
+                          >
+                            <Users className="w-4 h-4" />
+                            <span>Admin</span>
+                          </Link>
+                        )}
                         <Link
                           to="/settings/profile"
                           className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-300 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition"

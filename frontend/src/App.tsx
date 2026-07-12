@@ -7,10 +7,12 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { MfaSetupPage } from './pages/MfaSetupPage';
 import { SimulatePage } from './pages/SimulatePage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AlertDetailPage } from './pages/AlertDetailPage';
 import { ClientComplaintPage } from './pages/ClientComplaintPage';
 import { MyComplaintsPage } from './pages/MyComplaintsPage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
 
 function RoleBasedHome() {
   const { user, status } = useAuth();
@@ -35,6 +37,8 @@ function App() {
           <Route path="/settings/mfa" element={<ProtectedRoute><MfaSetupPage /></ProtectedRoute>} />
           <Route path="/simulate" element={<ProtectedRoute><SimulatePage /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+          <Route path="/settings/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute><AdminUsersPage /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><RoleBasedHome /></ProtectedRoute>} />
           <Route path="*" element={<ProtectedRoute><RoleBasedHome /></ProtectedRoute>} />
         </Routes>
