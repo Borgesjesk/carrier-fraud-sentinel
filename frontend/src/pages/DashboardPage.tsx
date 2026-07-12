@@ -104,7 +104,7 @@ export function DashboardPage() {
                 .catch(() => {});
       };
 
-      load();
+      loadAlerts();
       const intervalId = setInterval(load, 10_000);
 
       return () => {
@@ -165,7 +165,7 @@ const toggleSelect = (id: string) => {
     try {
       await Promise.all(Array.from(selectedIds).map((id) => alertService.resolve(id, resolution)));
       setSelectedIds(new Set());
-      load();
+      loadAlerts();
     } finally {
       setBulkAction(null);
     }
@@ -177,7 +177,7 @@ const toggleSelect = (id: string) => {
     try {
       await Promise.all(Array.from(selectedIds).map((id) => alertService.accept(id, user.username)));
       setSelectedIds(new Set());
-      load();
+      loadAlerts();
     } finally {
       setBulkAction(null);
     }
