@@ -10,6 +10,29 @@ import { useRef } from 'react';
 import { Toast } from '../components/Toast';
 import type { Alert, Severity } from '../types/Alert';
 
+function downloadCSV(alerts: Alert[]) {
+  const headers = ['Alert ID', 'Carrier', 'Reporter', 'Severity', 'Status', 'Department', 'Rule', 'Risk Score', 'Created'];
+  const rows = alerts.map((a) => [
+    a.alertId,
+    a.carrierName,
+    a.createdBy || '',
+    a.severity,
+    a.status,
+    a.assignedDepartment,
+    a.triggeredRules,
+    Math.min(100, (a.riskScore / 3) * 100).toFixed(0) + '%',
+    new Date(a.createdDate).toLocaleString('en-GB'),
+  ]);
+  const csv = [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `fraudsentinel-alerts-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 const SEVERITY_STYLES: Record<Severity, string> = {
   LOW: 'bg-slate-700/50 text-slate-300 border-slate-600',
   MEDIUM: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
@@ -33,6 +56,7 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned' | 'stale'>('all');
+  const [severityFilter, setSeverityFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -83,6 +107,7 @@ export function DashboardPage() {
       if (filter === 'mine' && alert.assignedTo !== user?.username) return false;
       if (filter === 'unassigned' && alert.status !== 'UNASSIGNED') return false;
       if (filter === 'stale' && !alert.isStale) return false;
+      if (severityFilter && alert.severity !== severityFilter) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const carrier = alert.carrierName?.toLowerCase() || '';
@@ -173,12 +198,47 @@ export function DashboardPage() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats grid */}
         <div className="grid grid-cols-4 gap-4 mb-8">
-          <StatCard label="Total alerts" value={stats.total} />
-          <StatCard label="Critical" value={stats.critical} accent="text-red-300" />
-          <StatCard label="High" value={stats.high} accent="text-orange-300" />
-          <StatCard label="Medium" value={stats.medium} accent="text-amber-300" />
-          <StatCard label="Unassigned" value={stats.unassigned} accent="text-slate-300" />
-          <StatCard label="Stale (>72h)" value={stats.stale} accent="text-amber-400" />
+          <StatCard
+                      label="Total alerts"
+                      value={stats.total}
+                      onClick={() => { setFilter('all'); setSeverityFilter(null); }}
+                      active={filter === 'all' && !severityFilter}
+                    />
+                    <StatCard
+                      label="Critical"
+                      value={stats.critical}
+                      accent="text-red-300"
+                      onClick={() => { setFilter('all'); setSeverityFilter('CRITICAL'); }}
+                      active={severityFilter === 'CRITICAL'}
+                    />
+                    <StatCard
+                      label="High"
+                      value={stats.high}
+                      accent="text-orange-300"
+                      onClick={() => { setFilter('all'); setSeverityFilter('HIGH'); }}
+                      active={severityFilter === 'HIGH'}
+                    />
+                    <StatCard
+                      label="Medium"
+                      value={stats.medium}
+                      accent="text-amber-300"
+                      onClick={() => { setFilter('all'); setSeverityFilter('MEDIUM'); }}
+                      active={severityFilter === 'MEDIUM'}
+                    />
+                    <StatCard
+                      label="Unassigned"
+                      value={stats.unassigned}
+                      accent="text-slate-300"
+                      onClick={() => { setFilter('unassigned'); setSeverityFilter(null); }}
+                      active={filter === 'unassigned'}
+                    />
+                    <StatCard
+                      label="Stale (>72h)"
+                      value={stats.stale}
+                      accent="text-amber-400"
+                      onClick={() => { setFilter('stale'); setSeverityFilter(null); }}
+                      active={filter === 'stale'}
+                    />
         </div>
 
         {/* Alerts table */}
@@ -304,9 +364,21 @@ export function DashboardPage() {
   );
 }
 
-function StatCard({ label, value, accent }: { label: string; value: number; accent?: string }) {
+function StatCard({ label, value, accent, onClick, active }: {
+  label: string;
+  value: number;
+  accent?: string;
+  onClick?: () => void;
+  active?: boolean;
+}) {
+  const clickable = !!onClick;
   return (
-    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+    <div
+      onClick={onClick}
+      className={`bg-slate-900/50 border rounded-lg p-4 transition ${
+        clickable ? 'cursor-pointer hover:bg-slate-900/80 hover:border-sky-500/50' : ''
+      } ${active ? 'border-sky-500/70 bg-sky-500/10' : 'border-slate-800'}`}
+    >
       <div className="text-xs text-slate-400 uppercase tracking-wide">{label}</div>
       <div className={`text-2xl font-semibold mt-1 ${accent || 'text-slate-100'}`}>{value}</div>
     </div>
