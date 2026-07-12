@@ -10,7 +10,7 @@ _(cold start ~30s on first request)_
 
 [![CI](https://github.com/Borgesjesk/carrier-fraud-sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Borgesjesk/carrier-fraud-sentinel/actions/workflows/ci.yml)
 
-A carrier fraud detection platform with role-based access control, multi-channel case management, real-time alert routing, and a full auth stack including MFA.
+A carrier fraud detection platform with role-based access control, multi-channel case management, real-time alert routing, and enterprise-grade authentication including MFA, IP allowlisting, and self-service account recovery.
 
 Built as the final project for the IT Academy Barcelona Java Backend bootcamp. The design comes directly from six years of fraud investigation work at a European freight exchange, where I dealt daily with the patterns this system detects: carriers gaming payment terms, escalating offer prices, and accumulating complaints across multiple categories.
 
@@ -29,7 +29,7 @@ Built as the final project for the IT Academy Barcelona Java Backend bootcamp. T
 | ![MFA challenge](docs/screenshots/03-login-mfa-challenge.png) | ![MFA setup](docs/screenshots/04-mfa-setup-qr.png) | ![Backup codes](docs/screenshots/05-mfa-backup-codes.png) |
 
 ### Dashboard and case management
-| Dashboard (color-coded status + two-party columns) | Alert detail with timeline |
+| Dashboard (six stat cards + two-party columns + bulk actions) | Alert detail with timeline |
 |-----------------------------------------------------|----------------------------|
 | ![Dashboard](docs/screenshots/06-dashboard-admin.png) | ![Alert detail](docs/screenshots/07-alert-detail.png) |
 
@@ -40,7 +40,7 @@ Built as the final project for the IT Academy Barcelona Java Backend bootcamp. T
 ![Client complaints](docs/screenshots/09-client-complaints.png)
 
 ### Swagger UI and CI
-| Swagger UI | GitHub Actions |
+| Swagger UI (10 tags) | GitHub Actions |
 |------------|----------------|
 | ![Swagger](docs/screenshots/10-swagger-ui.png) | ![CI](docs/screenshots/11-github-actions.png) |
 
@@ -52,6 +52,11 @@ Built as the final project for the IT Academy Barcelona Java Backend bootcamp. T
 ### Alert timeline
 ![Timeline](docs/screenshots/14-alert-timeline.png)
 
+### Self-service profile and admin recovery
+| Profile page (IP + TOTP re-auth) | Admin user management |
+|----------------------------------|------------------------|
+| ![Profile](docs/screenshots/15-profile-page.png) | ![Admin](docs/screenshots/16-admin-users.png) |
+
 ---
 
 ## What it does
@@ -60,7 +65,7 @@ FraudSentinel scores carrier transactions in real time through a rule engine, ge
 
 Two distinct user flows:
 
-**Internal staff** (Admin, Analyst, Compliance) see alerts filtered by their role's visible departments. They can claim a case, investigate it, resolve it, escalate, or transfer to another department. Every case has a comment thread where staff and the affected client can communicate. Staff can also manually run the rule engine on any transaction via the Simulate page.
+**Internal staff** (Admin, Analyst, Compliance) see alerts filtered by their role's visible departments. They can claim a case, investigate it, resolve it, escalate, transfer to another department, or perform bulk actions on multiple alerts at once. Every case has a comment thread where staff and the affected client can communicate. Staff can also manually run the rule engine on any transaction via the Simulate page, view detailed analytics dashboards, and export filtered alert lists to CSV.
 
 **External clients** (carriers submitting complaints) log in to a separate flow. They cannot see other carriers' cases or internal notes. They submit a complaint with a description and supporting documents (PDF or images), then track the status of their case and respond to investigator questions through the comment thread.
 
@@ -83,7 +88,7 @@ This is a portfolio project, but it's not generic. It's the system I wished exis
 - Spring Boot 3.5.14 (LTS)
 - MongoDB Atlas (replica set, eu-west-3)
 - Spring Security with JWT (HS256), BCrypt password hashing
-- HttpOnly + Secure + SameSite cookie authentication
+- HttpOnly + Secure + SameSite=Lax cookie authentication
 - Bucket4j for rate limiting
 - googleauth for TOTP-based MFA
 - Multipart file upload with disk-based storage (Strategy pattern, swap-ready for S3)
@@ -106,7 +111,7 @@ This is a portfolio project, but it's not generic. It's the system I wished exis
 - JaCoCo coverage gate
 - CycloneDX SBOM generation
 - GitHub Actions CI/CD (backend + frontend + Docker build)
-- Deployed on Render (backend + static site)
+- Deployed on Render with same-origin proxy (mobile-friendly cookies)
 
 ---
 
@@ -118,10 +123,22 @@ The auth layer went deep because carrier fraud investigation is where credential
 - **Access token 1h + refresh token 7d** — short blast radius on token theft; refresh persisted in MongoDB so it can be revoked instantly
 - **Refresh token rotation with theft detection** — every refresh issues a new token and revokes the old one; reusing a revoked token triggers revocation of ALL of the user's refresh tokens
 - **TOTP-based MFA** — enrollment via inline QR code + 10 backup codes; login flow: password → MFA challenge → session
+- **TOTP re-authentication for sensitive changes** — password change, email change, and MFA disable all require a fresh 6-digit code if the user has MFA enabled; login session alone is not sufficient
+- **IP allowlisting** — every successful login records the client IP address; profile mutation requests from unrecognized IPs are rejected with 403 Forbidden. Users are effectively locked to their known devices for account changes
 - **Rate limiting** — Bucket4j token buckets, 5 login attempts/min and 60 general requests/min per IP; 429 responses in RFC 7807 format
 - **Password reset with time-limited tokens** — 15-minute TTL, silent-fail on unknown email (prevents user enumeration)
 - **RBAC enforced server-side** — the backend queries only the alerts each role should see; the frontend never receives forbidden data
 - **Path traversal protection** — file storage resolves paths and verifies containment inside the storage root; filenames use UUIDs
+
+**Role-based capabilities for profile changes**
+
+| Role | Password | Email | Disable MFA | Bulk actions | Admin controls |
+|------|----------|-------|-------------|--------------|----------------|
+| CLIENT | ✓ (with IP+TOTP) | ✓ (with IP+TOTP) | ✗ | ✗ | ✗ |
+| ANALYST/COMPLIANCE | ✓ (with IP+TOTP) | ✗ (contact admin) | ✗ (contact admin) | ✓ | ✗ |
+| ADMIN | ✓ (with IP+TOTP) | ✓ (with IP+TOTP) | ✓ (with IP+TOTP) | ✓ | ✓ |
+
+The email/MFA restrictions on staff (least privilege) prevent an insider from silently pivoting an account. The admin recovery endpoints (`/api/v1/profile/admin/users/{username}/mfa/disable` and `/reset-ips`) exist for the real-world case of a user losing their MFA device or moving locations. Both actions are audit-logged.
 
 ---
 
@@ -154,6 +171,31 @@ CLIENT is fundamentally different from the others — they don't have department
 
 ---
 
+## Dashboard features
+
+- **Six clickable stat cards** — total, critical, high, medium, unassigned, stale. Clicking a card applies the matching filter
+- **Search bar** — case-insensitive substring match against carrier or complainant
+- **Filter tabs** — all, unassigned, mine, stale
+- **Two-party columns** — accused carrier in red, complainant in emerald
+- **Color-coded status badges** — slate/sky/violet/emerald/red per state
+- **Bulk selection** — checkbox on each row, floating action bar with Accept and Resolve for the selection
+- **CSV export** — download the currently filtered list with all metadata
+- **Notification bell** — polls every 30s, refreshes immediately when an alert is opened, dropdown shows the 10 most recent unread threads
+- **Live audit trail** — every alert has a chronological timeline showing creation, assignment, transfer, comments, and resolution
+
+---
+
+## Analytics dashboard
+
+Four Recharts visualizations available at `/analytics`:
+
+- Alerts by severity (donut chart with color scheme matching the rest of the UI)
+- Alerts by department (horizontal bar chart, sorted by count)
+- 30-day trend of alerts created per day (line chart)
+- Top 5 most-accused carriers (horizontal bar chart)
+
+---
+
 ## Architecture
 
 ```
@@ -161,7 +203,7 @@ src/main/java/com/carrierfraud/
 ├── domain/          Entities, enums, value objects, business rules
 ├── application/     Services, use cases, detection rules (Strategy pattern)
 ├── infrastructure/  MongoDB repositories + disk storage implementation
-├── api/             REST controllers, DTOs, exception handlers
+├── api/             REST controllers, DTOs, exception handlers, profile management
 ├── security/        Spring Security config, JWT, MFA, password reset, refresh tokens
 ├── audit/           Tamper-resistant audit log
 └── config/          Cookie, CORS, MongoDB index configuration
@@ -170,8 +212,8 @@ frontend/
 ├── src/types/       TypeScript interfaces matching backend DTOs
 ├── src/api/         Axios client + service modules
 ├── src/auth/        AuthContext with three-state session machine
-├── src/components/  Reusable components (Timeline, CommentsThread, ProtectedRoute)
-└── src/pages/       Login, Dashboard, AlertDetail, Analytics, Simulate, MfaSetup, ...
+├── src/components/  Reusable components (Timeline, NotificationBell, CommentsThread, ProtectedRoute)
+└── src/pages/       Login, Dashboard, AlertDetail, Analytics, Simulate, Profile, AdminUsers, MfaSetup, ...
 ```
 
 ---
@@ -187,6 +229,17 @@ frontend/
 - `POST /api/v1/auth/mfa/setup` + `/verify-setup` — enroll TOTP with backup codes
 - `GET /api/v1/auth/me` — session bootstrap
 - `POST /api/v1/auth/logout` — clears cookies, revokes refresh token
+
+**Profile (self-service, requires known IP + TOTP if MFA enabled)**
+- `GET /api/v1/profile` — full profile including active sessions and backup codes remaining
+- `PUT /api/v1/profile/password` — change password
+- `PUT /api/v1/profile/email` — change email (CLIENT and ADMIN only)
+- `POST /api/v1/profile/mfa/disable` — disable MFA (ADMIN only)
+
+**Admin recovery (ADMIN only)**
+- `GET /api/v1/profile/admin/users` — list every user with MFA and IP status
+- `POST /api/v1/profile/admin/users/{username}/mfa/disable` — recover locked-out user
+- `POST /api/v1/profile/admin/users/{username}/reset-ips` — clear IP allowlist after user changes location
 
 **Alerts (staff)**
 - `GET /api/v1/transactions/alerts` — list filtered by role
