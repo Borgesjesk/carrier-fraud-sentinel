@@ -8,7 +8,9 @@ import { AlertTriangle } from 'lucide-react';
 import { MessageCircle } from 'lucide-react';
 import { useRef } from 'react';
 import { Toast } from '../components/Toast';
+import { NotificationBell } from '../components/NotificationBell';
 import type { Alert, Severity } from '../types/Alert';
+
 
 function downloadCSV(alerts: Alert[]) {
   const headers = ['Alert ID', 'Carrier', 'Reporter', 'Severity', 'Status', 'Department', 'Rule', 'Risk Score', 'Created'];
@@ -162,6 +164,7 @@ export function DashboardPage() {
               <div className="text-sm font-medium text-slate-200">{user?.username}</div>
               <div className="text-xs text-slate-400">{user?.role}</div>
             </div>
+            <NotificationBell />
             <Link
                           to="/analytics"
                           className="flex items-center gap-2 px-3 py-1.5 text-sm text-violet-300 hover:text-violet-100 hover:bg-slate-800 rounded-lg transition"

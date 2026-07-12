@@ -7,6 +7,7 @@ import { alertReadService } from '../api/alertReadService';
 import { MessageCircle } from 'lucide-react';
 import { useRef } from 'react';
 import { Toast } from '../components/Toast';
+import { NotificationBell } from '../components/NotificationBell';
 import type { Alert, AlertStatus } from '../types/Alert';
 
 const STATUS_STYLES: Record<AlertStatus, string> = {
@@ -99,6 +100,7 @@ export function MyComplaintsPage() {
               <div className="text-sm font-medium text-slate-200">{user?.username}</div>
               <div className="text-xs text-slate-400">CLIENT</div>
             </div>
+            <NotificationBell />
             <Link
                           to="/settings/mfa"
                           className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-300 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition"
