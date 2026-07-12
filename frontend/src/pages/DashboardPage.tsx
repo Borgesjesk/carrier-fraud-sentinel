@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, LogOut, AlertCircle, Loader2, Shield, Zap, BarChart3, Download } from 'lucide-react';
+import { ShieldCheck, LogOut, AlertCircle, Loader2, Shield, Zap, BarChart3, Download, User } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { alertService } from '../api/alertService';
 import { alertReadService } from '../api/alertReadService';
@@ -59,6 +59,8 @@ export function DashboardPage() {
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned' | 'stale'>('all');
   const [severityFilter, setSeverityFilter] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -135,6 +137,46 @@ export function DashboardPage() {
     });
   };
 
+const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === filteredAlerts.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredAlerts.map((a) => a.alertId)));
+    }
+  };
+
+  const handleBulkResolve = async () => {
+    const resolution = prompt('Resolution summary for all selected:');
+    if (!resolution) return;
+    setBulkAction('resolve');
+    try {
+      await Promise.all(Array.from(selectedIds).map((id) => alertService.resolve(id, resolution)));
+      setSelectedIds(new Set());
+      loadAlerts();
+    } finally {
+      setBulkAction(null);
+    }
+  };
+
+  const handleBulkAccept = async () => {
+    if (!user?.username) return;
+    setBulkAction('accept');
+    try {
+      await Promise.all(Array.from(selectedIds).map((id) => alertService.accept(id, user.username)));
+      setSelectedIds(new Set());
+      loadAlerts();
+    } finally {
+      setBulkAction(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       {toastMessage && (
@@ -165,7 +207,14 @@ export function DashboardPage() {
               <div className="text-xs text-slate-400">{user?.role}</div>
             </div>
             <NotificationBell />
-            <Link
+                        <Link
+                          to="/settings/profile"
+                          className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-300 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition"
+                        >
+                          <User className="w-4 h-4" />
+                          <span>Profile</span>
+                        </Link>
+                        <Link
                           to="/analytics"
                           className="flex items-center gap-2 px-3 py-1.5 text-sm text-violet-300 hover:text-violet-100 hover:bg-slate-800 rounded-lg transition"
                         >
@@ -322,6 +371,14 @@ export function DashboardPage() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-900/50">
                   <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                    <th className="px-4 py-3 font-medium w-8">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.size > 0 && selectedIds.size === filteredAlerts.length}
+                        onChange={selectAll}
+                        className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-sky-500"
+                      />
+                    </th>
                     <th className="px-4 py-3 font-medium">Alert ID</th>
                     <th className="px-4 py-3 font-medium">Carrier accused</th>
                     <th className="px-4 py-3 font-medium">Reported by</th>
@@ -334,7 +391,15 @@ export function DashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-800">
                   {filteredAlerts.map((alert) => (
-                    <tr key={alert.alertId} className="hover:bg-slate-900/30 transition">
+                    <tr key={alert.alertId} className={`hover:bg-slate-900/30 transition ${selectedIds.has(alert.alertId) ? 'bg-sky-500/5' : ''}`}>
+                      <td className="px-4 py-3 w-8">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(alert.alertId)}
+                          onChange={() => toggleSelect(alert.alertId)}
+                          className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-sky-500"
+                        />
+                      </td>
                       <td className="px-4 py-3 font-mono text-xs">
                         <div className="flex items-center gap-2">
                           <Link to={`/alerts/${alert.alertId}`} className="text-sky-400 hover:text-sky-300 transition">
@@ -370,7 +435,38 @@ export function DashboardPage() {
             </div>
           )}
         </section>
-      </main>
+              </main>
+
+              {selectedIds.size > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl px-4 py-3 z-40">
+                  <span className="text-sm text-slate-300">
+                    <strong className="text-sky-400">{selectedIds.size}</strong> selected
+                  </span>
+                  <div className="w-px h-6 bg-slate-700" />
+                  <button
+                    onClick={handleBulkAccept}
+                    disabled={bulkAction !== null}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-lg transition disabled:opacity-30"
+                  >
+                    {bulkAction === 'accept' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    <span>Accept</span>
+                  </button>
+                  <button
+                    onClick={handleBulkResolve}
+                    disabled={bulkAction !== null}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg transition disabled:opacity-30"
+                  >
+                    {bulkAction === 'resolve' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    <span>Resolve</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedIds(new Set())}
+                    className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 transition"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
     </div>
   );
 }
