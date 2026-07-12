@@ -67,14 +67,20 @@ export function DashboardPage() {
   const previousCountsRef = useRef<Record<string, number>>({});
   const isFirstLoadRef = useRef(true);
 
-  useEffect(() => {
-      let cancelled = false;
+    const loadAlerts = () => {
+      alertService.getAll()
+        .then((data) => setAlerts(data))
+        .catch(() => setError('Failed to load alerts. Please refresh.'))
+        .finally(() => setIsLoading(false));
+    };
 
-      const load = () => {
-        alertService.getAll()
-          .then((data) => { if (!cancelled) setAlerts(data); })
-          .catch(() => { if (!cancelled) setError('Failed to load alerts. Please refresh.'); })
-          .finally(() => { if (!cancelled) setIsLoading(false); });
+    useEffect(() => {
+        let cancelled = false;
+        const load = () => {
+          alertService.getAll()
+            .then((data) => { if (!cancelled) setAlerts(data); })
+            .catch(() => { if (!cancelled) setError('Failed to load alerts. Please refresh.'); })
+            .finally(() => { if (!cancelled) setIsLoading(false); });
 
         alertReadService.unreadCounts()
                 .then((counts) => {
@@ -159,7 +165,7 @@ const toggleSelect = (id: string) => {
     try {
       await Promise.all(Array.from(selectedIds).map((id) => alertService.resolve(id, resolution)));
       setSelectedIds(new Set());
-      loadAlerts();
+      load();
     } finally {
       setBulkAction(null);
     }
@@ -171,7 +177,7 @@ const toggleSelect = (id: string) => {
     try {
       await Promise.all(Array.from(selectedIds).map((id) => alertService.accept(id, user.username)));
       setSelectedIds(new Set());
-      loadAlerts();
+      load();
     } finally {
       setBulkAction(null);
     }
