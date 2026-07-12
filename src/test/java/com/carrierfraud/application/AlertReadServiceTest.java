@@ -37,8 +37,8 @@ class AlertReadServiceTest {
     @Test
     void markAsRead_existingRecord_updatesTimestamp() {
         AlertRead existing = new AlertRead("client1", "A1", LocalDateTime.now().minusDays(1));
-        when(alertReadRepository.findByUsernameAndAlertId("client1", "A1"))
-                .thenReturn(Optional.of(existing));
+        when(alertReadRepository.findAllByUsernameAndAlertId("client1", "A1"))
+                .thenReturn(List.of(existing));
 
         service.markAsRead("client1", "A1");
 
@@ -47,8 +47,8 @@ class AlertReadServiceTest {
 
     @Test
     void markAsRead_newRecord_createsAlertRead() {
-        when(alertReadRepository.findByUsernameAndAlertId("client1", "A2"))
-                .thenReturn(Optional.empty());
+        when(alertReadRepository.findAllByUsernameAndAlertId("client1", "A2"))
+                .thenReturn(List.of());
 
         service.markAsRead("client1", "A2");
 
