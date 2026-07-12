@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, LogOut, AlertCircle, Loader2, Shield, Zap, BarChart3 } from 'lucide-react';
+import { ShieldCheck, LogOut, AlertCircle, Loader2, Shield, Zap, BarChart3, Download } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { alertService } from '../api/alertService';
 import { alertReadService } from '../api/alertReadService';
@@ -254,7 +254,15 @@ export function DashboardPage() {
                                     className="w-full px-3 py-1.5 text-sm bg-slate-900/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                                   />
                                 </div>
-                                <div className="flex gap-1 bg-slate-900/50 border border-slate-800 rounded-lg p-1">
+                      <button
+                      onClick={() => downloadCSV(filteredAlerts)}
+                      disabled={filteredAlerts.length === 0}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-300 hover:text-emerald-100 hover:bg-emerald-500/10 border border-emerald-500/30 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                                                >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export CSV</span>
+                      </button>
+                      <div className="flex gap-1 bg-slate-900/50 border border-slate-800 rounded-lg p-1">
                         {(['all', 'unassigned', 'mine', 'stale'] as const).map((f) => (
                           <button
                             key={f}
