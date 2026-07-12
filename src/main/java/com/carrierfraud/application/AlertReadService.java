@@ -25,11 +25,17 @@ public class AlertReadService {
 
     public void markAsRead(String username, String alertId) {
         LocalDateTime now = LocalDateTime.now();
-        alertReadRepository.findByUsernameAndAlertId(username, alertId)
-                .ifPresentOrElse(
-                        read -> { read.touch(now); alertReadRepository.save(read); },
-                        () -> alertReadRepository.save(new AlertRead(username, alertId, now))
-                );
+        java.util.List<AlertRead> reads = alertReadRepository.findAllByUsernameAndAlertId(username, alertId);
+        if (reads.isEmpty()) {
+            alertReadRepository.save(new AlertRead(username, alertId, now));
+            return;
+        }
+        AlertRead first = reads.get(0);
+        first.touch(now);
+        alertReadRepository.save(first);
+        for (int i = 1; i < reads.size(); i++) {
+            alertReadRepository.delete(reads.get(i));
+        }
     }
 
     public Map<String, Long> unreadCounts(String username, List<String> alertIds) {

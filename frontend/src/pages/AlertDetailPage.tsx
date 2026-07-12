@@ -49,8 +49,9 @@ export function AlertDetailPage() {
         .finally(() => setIsLoading(false));
 
       commentService.list(alertId).then(setTimelineComments).catch(() => {});
-      alertReadService.markAsRead(alertId).catch(() => {
-      });
+      alertReadService.markAsRead(alertId).then(() => {
+              window.dispatchEvent(new Event('alert:read'));
+            }).catch(() => {});
     }, [alertId]);
 
   const runAction = async (label: string, fn: () => Promise<Alert>) => {

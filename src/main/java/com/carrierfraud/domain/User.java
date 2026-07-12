@@ -28,6 +28,7 @@ public class User {
     private boolean mfaEnabled;
     private String mfaSecret;
     private java.util.List<String> backupCodes = new java.util.ArrayList<>();
+    private java.util.List<String> knownIps = new java.util.ArrayList<>();
 
     public User(String username, String passwordHash, Role role, String email) {
         this.username = Objects.requireNonNull(username, "username");
@@ -69,5 +70,28 @@ public class User {
 
     public void setBackupCodes(java.util.List<String> backupCodes) {
         this.backupCodes = backupCodes;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public java.util.List<String> getKnownIps() {
+        return knownIps;
+    }
+
+    public void setKnownIps(java.util.List<String> knownIps) {
+        this.knownIps = knownIps;
+    }
+
+    public void addKnownIp(String ip) {
+        if (ip != null && !ip.isBlank() && (knownIps == null || !knownIps.contains(ip))) {
+            if (knownIps == null) knownIps = new java.util.ArrayList<>();
+            knownIps.add(ip);
+        }
     }
 }

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -75,6 +76,15 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
         problem.setDetail("Authentication is required to access this resource.");
         return populateProblem(problem, "unauthorized", "Unauthorized", request, Map.of());
+    }
+
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ProblemDetail> handleSecurity(SecurityException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problem.setType(URI.create("https://fraudsentinel.carrierfraud.com/problems/forbidden"));
+        problem.setTitle("Forbidden");
+        problem.setProperty("timestamp", Instant.now());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

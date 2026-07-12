@@ -38,9 +38,14 @@ export function NotificationBell() {
       }
     };
     load();
-    const interval = setInterval(load, 30000);
-    return () => clearInterval(interval);
-  }, []);
+        const interval = setInterval(load, 30000);
+        const onReadEvent = () => load();
+        window.addEventListener('alert:read', onReadEvent);
+        return () => {
+          clearInterval(interval);
+          window.removeEventListener('alert:read', onReadEvent);
+        };
+      }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

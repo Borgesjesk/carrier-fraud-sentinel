@@ -51,6 +51,9 @@ public class AuthenticationService {
             log.info("Successful login: username={} role={} remote={}",
                     user.getUsername(), role, remoteAddr);
 
+            user.addKnownIp(remoteAddr);
+            userRepository.save(user);
+
             if (user.isMfaEnabled()) {
                 log.info("MFA challenge issued: username={}", user.getUsername());
                 return LoginResult.mfaChallenge();
@@ -86,6 +89,8 @@ public class AuthenticationService {
             String token = jwtService.generateToken(user.getUsername(), Map.of(ROLE_CLAIM, role));
             log.info("Successful MFA login: username={} role={} remote={}",
                     user.getUsername(), role, remoteAddr);
+            user.addKnownIp(remoteAddr);
+            userRepository.save(user);
             return LoginResult.authenticated(token, new AuthResponse(user.getUsername(), role));
         } catch (AuthenticationException ex) {
             log.warn("Failed MFA login: username={} remote={} reason={}",
