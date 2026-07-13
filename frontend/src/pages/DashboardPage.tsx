@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, LogOut, AlertCircle, Loader2, Shield, Zap, BarChart3, Download, User, Users } from 'lucide-react';
+import { ShieldCheck, LogOut, AlertCircle, Loader2, Shield, Zap, BarChart3, Download, User, Users, FileSearch } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { alertService } from '../api/alertService';
 import { alertReadService } from '../api/alertReadService';
@@ -213,6 +213,15 @@ const toggleSelect = (id: string) => {
               <div className="text-xs text-slate-400">{user?.role}</div>
             </div>
             <NotificationBell />
+            {(user?.role === 'ADMIN' || user?.role === 'COMPLIANCE') && (
+                          <Link
+                            to="/admin/audit"
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm text-amber-300 hover:text-amber-100 hover:bg-slate-800 rounded-lg transition"
+                          >
+                            <FileSearch className="w-4 h-4" />
+                            <span>Audit</span>
+                          </Link>
+                        )}
             {user?.role === 'ADMIN' && (
                           <Link
                             to="/admin/users"
@@ -249,14 +258,13 @@ const toggleSelect = (id: string) => {
                         >
                           <Shield className="w-4 h-4" />
                           <span>MFA</span>
-                        </Link>
-                        <button
-                          onClick={() => logout()}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-300 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Logout</span>
-            </button>
+                        </Link>                                                <button
+                                                  onClick={() => logout()}
+                                      className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-300 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition"
+                                    >
+                                      <LogOut className="w-4 h-4" />
+                                      <span>Logout</span>
+                                    </button>
           </div>
         </div>
       </header>

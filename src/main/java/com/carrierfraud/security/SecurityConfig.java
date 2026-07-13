@@ -71,6 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/me").authenticated()
                         .requestMatchers("/api/v1/auth/mfa/**").authenticated()
                         .requestMatchers("/api/v1/profile/**").authenticated()
+                        .requestMatchers("/api/v1/audit/**").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/", "/index.html", "/favicon.ico",
                                 "/static/**", "/css/**", "/js/**").permitAll()
