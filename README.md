@@ -1,4 +1,4 @@
-# FraudSentinel
+# FraudSentinel 🔍
 
 **Live app:** https://fraudsentinel-app.onrender.com  
 **Live backend:** https://fraudsentinel-api-mpb5.onrender.com  
@@ -16,7 +16,7 @@ Built as the final project for the IT Academy Barcelona Java Backend bootcamp. T
 
 ---
 
-## Screenshots
+## 📸 Screenshots
 
 ### Login and password recovery
 | Login | Forgot password |
@@ -60,7 +60,7 @@ Built as the final project for the IT Academy Barcelona Java Backend bootcamp. T
 
 ---
 
-## What it does
+## 🎯 What it does
 
 FraudSentinel scores carrier transactions in real time through a rule engine, generates alerts with calculated severity, and routes them to the responsible department automatically. From the moment a case enters the system — whether triggered by detection rules, injected by the auto-generator, or submitted by a client — it follows a tracked lifecycle: routed, claimed, investigated, resolved, or escalated, with full audit trail, bidirectional communication, and time-stamped events.
 
@@ -74,7 +74,7 @@ Two distinct user flows:
 
 ---
 
-## Why it exists
+## 💡 Why it exists
 
 I spent six years at a European carrier matching platform, investigating fraud, KYC, and AML compliance for European carriers. The patterns this system detects — payment reconciliation gaps, price escalation, complaint accumulation — are the exact patterns I worked with daily.
 
@@ -84,7 +84,7 @@ This is a portfolio project, but it's not generic. It's the system I wished exis
 
 ---
 
-## Tech stack
+## 🛠️ Tech stack
 
 **Backend**
 - Java 21 (Eclipse Temurin)
@@ -119,7 +119,7 @@ This is a portfolio project, but it's not generic. It's the system I wished exis
 
 ---
 
-## Auth stack
+## 🔐 Auth stack
 
 The auth layer went deep because carrier fraud investigation is where credentials matter most.
 
@@ -149,7 +149,7 @@ The email/MFA restrictions on staff (least privilege) prevent an insider from si
 
 ---
 
-## Detection rules
+## 🎲 Detection rules
 
 Three rules implemented with the Strategy pattern. Adding a new rule is a new class implementing the same interface, no changes to the dispatcher.
 
@@ -165,7 +165,7 @@ Staff can run the rule engine interactively via the Simulate page, or watch it w
 
 ---
 
-## Role-based access control
+## 👥 Role-based access control
 
 | Role | Visible departments | Real-world use case |
 |------|---------------------|---------------------|
@@ -178,7 +178,7 @@ CLIENT is fundamentally different from the others — they don't have department
 
 ---
 
-## Dashboard features
+## 📋 Dashboard features
 
 - **Six clickable stat cards** — total, critical, high, medium, unassigned, stale. Clicking a card applies the matching filter
 - **Search bar** — case-insensitive substring match against carrier or complainant
@@ -193,7 +193,7 @@ CLIENT is fundamentally different from the others — they don't have department
 
 ---
 
-## Analytics dashboard
+## 📊 Analytics dashboard
 
 Four Recharts visualizations available at `/analytics`:
 
@@ -204,7 +204,7 @@ Four Recharts visualizations available at `/analytics`:
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 src/main/java/com/carrierfraud/
@@ -227,7 +227,7 @@ frontend/
 
 ---
 
-## Key endpoints
+## 🔗 Key endpoints
 
 **Authentication and account**
 - `POST /api/v1/auth/login` — issues HttpOnly cookie or returns `{mfaRequired: true}`
@@ -277,7 +277,7 @@ frontend/
 
 ---
 
-## Running locally
+## 🚀 Running locally
 
 ### Quick start with Docker (recommended)
 
@@ -317,7 +317,7 @@ Frontend on http://localhost:5173. Expects `VITE_API_BASE_URL=http://localhost:8
 
 ---
 
-## Testing
+## 🧪 Testing
 
 ```bash
 ./mvnw test                                  # 139+ unit + integration tests
@@ -327,7 +327,7 @@ Frontend on http://localhost:5173. Expects `VITE_API_BASE_URL=http://localhost:8
 
 ---
 
-## About me
+## 👋 About me
 
 I'm Jess Borges — Spanish-Brazilian, six years in fraud investigation and AML compliance at a European freight exchange, now transitioning into cybersecurity through the Ironhack IFCT0109 program. My goal is SOC Analyst then DevSecOps.
 
@@ -335,6 +335,6 @@ This project sits at the intersection of where I came from and where I'm going.
 
 ---
 
-## License
+## 📄 License
 
 MIT
