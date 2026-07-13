@@ -59,6 +59,7 @@ export function DashboardPage() {
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned' | 'stale'>('all');
   const [severityFilter, setSeverityFilter] = useState<string | null>(null);
+  const [deptFilter, setDeptFilter] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -118,6 +119,7 @@ export function DashboardPage() {
       if (filter === 'unassigned' && alert.status !== 'UNASSIGNED') return false;
       if (filter === 'stale' && !alert.isStale) return false;
       if (severityFilter && alert.severity !== severityFilter) return false;
+      if (deptFilter && alert.assignedDepartment !== deptFilter) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const carrier = alert.carrierName?.toLowerCase() || '';
@@ -329,8 +331,18 @@ const toggleSelect = (id: string) => {
                                     className="w-full px-3 py-1.5 text-sm bg-slate-900/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                                   />
                                 </div>
-                      <button
-                      onClick={() => downloadCSV(filteredAlerts)}
+                                                      <select
+                                                        value={deptFilter || ''}
+                                                        onChange={(e) => setDeptFilter(e.target.value || null)}
+                                                        className="px-3 py-1.5 text-xs bg-slate-900/50 border border-slate-800 rounded-lg text-slate-200"
+                                                      >
+                                                        <option value="">All departments</option>
+                                                        {Array.from(new Set(alerts.map(a => a.assignedDepartment).filter(Boolean))).sort().map((d) => (
+                                                          <option key={d} value={d}>{d}</option>
+                                                        ))}
+                                                      </select>
+                                                      <button
+                                                      onClick={() => downloadCSV(filteredAlerts)}
                       disabled={filteredAlerts.length === 0}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-300 hover:text-emerald-100 hover:bg-emerald-500/10 border border-emerald-500/30 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
                                                                 >
