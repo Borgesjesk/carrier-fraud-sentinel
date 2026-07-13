@@ -1,10 +1,7 @@
 package com.carrierfraud.api;
 
 import com.carrierfraud.audit.AuditService;
-import com.carrierfraud.domain.AlertSeverity;
-import com.carrierfraud.domain.Department;
-import com.carrierfraud.domain.DocumentMetadata;
-import com.carrierfraud.domain.RiskAlert;
+import com.carrierfraud.domain.*;
 import com.carrierfraud.infrastructure.RiskAlertRepository;
 import com.carrierfraud.infrastructure.storage.DocumentStorage;
 import jakarta.validation.Valid;
@@ -160,5 +157,33 @@ public class ComplaintController {
         } catch (IllegalArgumentException ex) {
             return com.carrierfraud.domain.DocumentCategory.OTHER;
         }
+    }
+
+    @PostMapping("/{alertId}/documents")
+    public ResponseEntity<RiskAlertResponse> addDocuments(
+            @PathVariable String alertId,
+            @RequestPart(value = "documents", required = true) MultipartFile[] documents,
+            @RequestParam(value = "categories", required = false) String[] categories,
+            Authentication authentication) {
+        ensureClientRole(authentication);
+        RiskAlert alert = alertRepository.findById(alertId)
+                .orElseThrow(() -> new BusinessRuleException("Alert not found"));
+        if (!authentication.getName().equals(alert.getCreatedBy())) {
+            throw new SecurityException("You can only add documents to your own complaints");
+        }
+        if (documents == null || documents.length == 0) {
+            throw new BusinessRuleException("At least one document is required");
+        }
+        for (int i = 0; i < documents.length; i++) {
+            String category = (categories != null && i < categories.length) ? categories[i] : "OTHER";
+            try {
+                DocumentMetadata meta = documentStorage.store(documents[i], DocumentCategory.valueOf(category));
+                alert.addDocument(meta);
+            } catch (Exception e) {
+                throw new BusinessRuleException("Failed to store document: " + e.getMessage());
+            }
+        }
+        RiskAlert saved = alertRepository.save(alert);
+        return ResponseEntity.ok(RiskAlertResponse.fromDomainAlert(saved));
     }
 }

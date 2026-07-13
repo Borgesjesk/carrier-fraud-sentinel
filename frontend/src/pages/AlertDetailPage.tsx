@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Search, ArrowUpCircle, ArrowRightLeft, FileText, Download } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { CommentsThread } from '../components/CommentsThread';
+import apiClient from '../api/client';
 import { alertService } from '../api/alertService';
 import { alertReadService } from '../api/alertReadService';
 import { NotesThread } from '../components/NotesThread';
@@ -40,6 +41,8 @@ export function AlertDetailPage() {
   const [transferTarget, setTransferTarget] = useState('LEGAL');
   const [transferReason, setTransferReason] = useState('');
   const [timelineComments, setTimelineComments] = useState<Comment[]>([]);
+  const [newDocs, setNewDocs] = useState<File[]>([]);
+  const [uploadingDocs, setUploadingDocs] = useState(false);
 
   useEffect(() => {
       if (!alertId) return;
@@ -94,6 +97,28 @@ export function AlertDetailPage() {
     if (!reason) return;
     runAction('Escalate', () => alertService.escalate(alertId!, reason));
   };
+
+  const handleAddDocuments = async () => {
+      if (!alertId || newDocs.length === 0) return;
+      setUploadingDocs(true);
+      try {
+        const formData = new FormData();
+        newDocs.forEach((f) => {
+          formData.append('documents', f);
+          formData.append('categories', 'OTHER');
+        });
+        await apiClient.post(`/api/v1/complaints/${alertId}/documents`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        setNewDocs([]);
+        // Reload alert
+        alertService.getById(alertId).then(setAlert);
+      } catch {
+        setError('Failed to upload documents');
+      } finally {
+        setUploadingDocs(false);
+      }
+    };
 
   const formatDate = (iso: string) => new Date(iso).toLocaleString('en-GB', {
     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -209,8 +234,28 @@ export function AlertDetailPage() {
                     </li>
                   ))}
                 </ul>
-              </section>
-            )}
+                                {user?.role === 'CLIENT' && (
+                                  <div className="mt-4 pt-4 border-t border-slate-800">
+                                    <input
+                                      type="file"
+                                      multiple
+                                      onChange={(e) => setNewDocs(Array.from(e.target.files || []))}
+                                      className="text-xs text-slate-400 file:mr-3 file:px-3 file:py-1.5 file:text-xs file:bg-sky-500/10 file:text-sky-300 file:border file:border-sky-500/30 file:rounded file:cursor-pointer hover:file:bg-sky-500/20"
+                                    />
+                                    {newDocs.length > 0 && (
+                                      <button
+                                        onClick={handleAddDocuments}
+                                        disabled={uploadingDocs}
+                                        className="mt-2 flex items-center gap-1.5 px-3 py-1.5 text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded transition disabled:opacity-30"
+                                      >
+                                        {uploadingDocs ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />}
+                                        <span>Upload {newDocs.length} document{newDocs.length > 1 ? 's' : ''}</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </section>
+                            )}
 
             {user?.role !== 'CLIENT' && (
             <section className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
