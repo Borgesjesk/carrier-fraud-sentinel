@@ -14,6 +14,22 @@ interface Profile {
   createdAt: string;
 }
 
+function getPasswordStrength(password: string): { score: number; label: string; color: string } {
+  if (!password) return { score: 0, label: '', color: '' };
+  let score = 0;
+  if (password.length >= 12) score++;
+  if (password.length >= 16) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 2) return { score, label: 'Weak', color: 'bg-red-500' };
+  if (score <= 4) return { score, label: 'Fair', color: 'bg-amber-500' };
+  if (score <= 5) return { score, label: 'Strong', color: 'bg-emerald-500' };
+  return { score, label: 'Excellent', color: 'bg-sky-500' };
+}
+
 export function ProfilePage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -168,6 +184,18 @@ export function ProfilePage() {
 
         {profile && !loading && (
           <>
+           <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                         <div>
+                           <div className="text-sm font-semibold text-slate-200">Session management</div>
+                           <div className="text-xs text-slate-400">View and revoke your active sessions</div>
+                         </div>
+                         <Link
+                           to="/settings/sessions"
+                           className="px-3 py-1.5 text-sm bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-lg transition"
+                         >
+                           Manage sessions
+                         </Link>
+                       </div>
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-4">Account info</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -209,6 +237,27 @@ export function ProfilePage() {
               <form onSubmit={handleChangePassword} className="space-y-3">
                 <input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required placeholder="Current password" className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm" />
                 <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={12} placeholder="New password (min 12 chars)" className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm" />
+                                {newPassword && (
+                                  <div className="space-y-1">
+                                    <div className="flex gap-1">
+                                      {[1, 2, 3, 4, 5, 6].map((i) => {
+                                        const strength = getPasswordStrength(newPassword);
+                                        return (
+                                          <div
+                                            key={i}
+                                            className={`h-1 flex-1 rounded ${i <= strength.score ? strength.color : 'bg-slate-700'}`}
+                                          />
+                                        );
+                                      })}
+                                    </div>
+                                    <p className="text-xs text-slate-400">Strength: <span className={
+                                      getPasswordStrength(newPassword).label === 'Weak' ? 'text-red-300' :
+                                      getPasswordStrength(newPassword).label === 'Fair' ? 'text-amber-300' :
+                                      getPasswordStrength(newPassword).label === 'Strong' ? 'text-emerald-300' :
+                                      'text-sky-300'
+                                    }>{getPasswordStrength(newPassword).label}</span></p>
+                                  </div>
+                                )}
                 <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required placeholder="Confirm new password" className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm" />
                                 {profile.mfaEnabled && (
                                   <input type="text" inputMode="numeric" maxLength={6} value={pwdTotp} onChange={(e) => setPwdTotp(e.target.value.replace(/\D/g, ''))} required placeholder="6-digit MFA code" className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-center font-mono tracking-widest" />

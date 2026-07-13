@@ -133,6 +133,37 @@ public class ProfileController {
         }
     }
 
+    @GetMapping("/sessions")
+    public ResponseEntity<java.util.List<Map<String, Object>>> listSessions(Authentication auth) {
+        User user = load(auth.getName());
+        java.util.List<Map<String, Object>> sessions = refreshTokenRepository.findAll().stream()
+                .filter(t -> t.getUsername().equals(user.getUsername()))
+                .map(t -> {
+                    Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("tokenId", t.getTokenId());
+                    m.put("issuedAt", t.getIssuedAt().toString());
+                    m.put("expiresAt", t.getExpiresAt().toString());
+                    m.put("valid", t.isValid());
+                    return m;
+                })
+                .sorted((a, b) -> ((String) b.get("issuedAt")).compareTo((String) a.get("issuedAt")))
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(sessions);
+    }
+
+    @PostMapping("/sessions/{tokenId}/revoke")
+    public ResponseEntity<Void> revokeSession(@PathVariable String tokenId, Authentication auth) {
+        User user = load(auth.getName());
+        refreshTokenRepository.findAll().stream()
+                .filter(t -> t.getTokenId().equals(tokenId) && t.getUsername().equals(user.getUsername()))
+                .findFirst()
+                .ifPresent(t -> {
+                    t.revoke();
+                    refreshTokenRepository.save(t);
+                });
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/admin/users")
     public ResponseEntity<java.util.List<Map<String, Object>>> listUsers(Authentication auth) {
         User caller = load(auth.getName());

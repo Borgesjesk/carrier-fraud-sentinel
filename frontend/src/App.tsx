@@ -13,6 +13,7 @@ import { AlertDetailPage } from './pages/AlertDetailPage';
 import { ClientComplaintPage } from './pages/ClientComplaintPage';
 import { MyComplaintsPage } from './pages/MyComplaintsPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { SessionsPage } from './pages/SessionsPage';
 
 function RoleBasedHome() {
   const { user, status } = useAuth();
@@ -38,6 +39,7 @@ function App() {
           <Route path="/simulate" element={<ProtectedRoute><SimulatePage /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
           <Route path="/settings/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/settings/sessions" element={<ProtectedRoute><SessionsPage /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute><AdminUsersPage /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><RoleBasedHome /></ProtectedRoute>} />
           <Route path="*" element={<ProtectedRoute><RoleBasedHome /></ProtectedRoute>} />
