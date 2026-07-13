@@ -214,10 +214,10 @@ export function AlertDetailPage() {
                         <div className="flex items-center gap-2">
                                                   <span className="text-sm text-slate-200 truncate">{doc.originalFilename}</span>
                                                   <span className="px-1.5 py-0.5 text-[10px] font-medium bg-sky-500/15 text-sky-300 border border-sky-500/30 rounded uppercase tracking-wide">
-                                                    {doc.category === 'INVOICE' ? 'Factura' :
+                                                    {doc.category === 'INVOICE' ? 'Invoice' :
                                                      doc.category === 'CMR' ? 'CMR' :
-                                                     doc.category === 'LOAD_ORDER' ? 'Orden carga' :
-                                                     doc.category === 'EMAIL' ? 'Email' : 'Otro'}
+                                                     doc.category === 'LOAD_ORDER' ? 'Load order' :
+                                                     doc.category === 'EMAIL' ? 'Email' : 'Other'}
                                                   </span>
                                                 </div>
                                                 <div className="text-xs text-slate-500">{(doc.sizeBytes / 1024).toFixed(1)} KB · {doc.contentType}</div>

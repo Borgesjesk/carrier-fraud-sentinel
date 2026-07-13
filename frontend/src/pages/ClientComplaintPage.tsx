@@ -20,11 +20,11 @@ const COMPLAINT_TYPES: { value: ComplaintType; label: string }[] = [
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 10 * 1024 * 1024;
 const DOCUMENT_CATEGORIES: { value: DocumentCategory; label: string }[] = [
-  { value: 'INVOICE', label: 'Factura' },
+  { value: 'INVOICE', label: 'Invoice' },
   { value: 'CMR', label: 'CMR' },
   { value: 'LOAD_ORDER', label: 'Orden de carga' },
   { value: 'EMAIL', label: 'Email / texto' },
-  { value: 'OTHER', label: 'Otro' },
+  { value: 'OTHER', label: 'Other' },
 ];
 
 export function ClientComplaintPage() {
