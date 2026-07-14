@@ -39,4 +39,16 @@ public class OfferPriceEscalationRule implements StrategyRule {
     public String name() {
         return "OfferPriceEscalationRule";
     }
+
+    @Override
+    public String explain(Transaction transaction, double score) {
+        double offerPrice = transaction.getOfferPrice();
+        double deviation = ((offerPrice - MARKET_BASELINE) / MARKET_BASELINE) * 100;
+        return String.format(
+                "Offer price €%.2f is %.1f%% above market baseline of €%.2f. " +
+                        "Deviations of over 50%% typically indicate carriers testing shipper acceptance " +
+                        "of inflated rates or attempting to lock in above-market contracts before dispute.",
+                offerPrice, deviation, MARKET_BASELINE
+        );
+    }
 }

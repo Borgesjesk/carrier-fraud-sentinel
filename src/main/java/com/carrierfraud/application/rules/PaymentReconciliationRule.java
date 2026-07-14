@@ -39,4 +39,18 @@ public class PaymentReconciliationRule implements StrategyRule {
     public String name() {
         return "PaymentReconciliationRule";
     }
+
+    @Override
+    public String explain(Transaction transaction, double score) {
+        int failed = transaction.getFailedPayments();
+        int succeeded = transaction.getSucceededPayments();
+        int total = failed + succeeded;
+        double failureRate = total > 0 ? (100.0 * failed / total) : 0;
+        return String.format(
+                "Carrier has %d failed and %d succeeded payment attempts (%.1f%% failure rate). " +
+                        "Elevated payment failures suggest financial instability, invoice fraud patterns, " +
+                        "or intentional non-payment. Common in insolvency-adjacent operators.",
+                failed, succeeded, failureRate
+        );
+    }
 }

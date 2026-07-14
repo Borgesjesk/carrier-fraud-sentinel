@@ -33,4 +33,17 @@ public class ComplaintAccumulationRule implements StrategyRule {
     public String name() {
         return "ComplaintAccumulationRule";
     }
+
+    @Override
+    public String explain(Transaction transaction, double score) {
+        int incidents = transaction.getReportedIncidents();
+        int offers = transaction.getNumberOfOffers();
+        double rate = offers > 0 ? (100.0 * incidents / offers) : 0;
+        return String.format(
+                "Carrier has accumulated %d reported incidents across %d offers (%.1f%% incident rate). " +
+                        "Multiple accumulated complaints — including accidents, insurance events, or contractual " +
+                        "disputes — indicate systemic operational issues warranting compliance review.",
+                incidents, offers, rate
+        );
+    }
 }

@@ -41,6 +41,7 @@ public class FraudDetectionService {
 
         double totalScore = 0.0;
         StringBuilder triggeredRules = new StringBuilder();
+        StringBuilder explanations = new StringBuilder();
 
         for (StrategyRule rule : rules) {
             double ruleScore = rule.evaluate(transaction);
@@ -51,6 +52,10 @@ public class FraudDetectionService {
                     triggeredRules.append(", ");
                 }
                 triggeredRules.append(rule.name());
+                if (explanations.length() > 0) {
+                    explanations.append("\n\n");
+                }
+                explanations.append("• ").append(rule.name()).append(": ").append(rule.explain(transaction, ruleScore));
             }
         }
 
@@ -73,6 +78,7 @@ public class FraudDetectionService {
                 severity,
                 department
         );
+        alert.setDescription(explanations.toString());
 
         alertRepository.save(alert);
 

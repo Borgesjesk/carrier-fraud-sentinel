@@ -45,8 +45,8 @@ public class AlertGeneratorScheduler {
             Transaction t = createTransaction();
             RiskAlert alert = fraudDetectionService.analyseAndTag(t, "SIEM_SCHEDULER");
             if (alert != null) {
-                
-                
+
+
                 log.info("SIEM auto-generated alert: carrier={} severity={} rule={}",
                         alert.getCarrierName(), alert.getSeverity(), alert.getTriggeredRuleNames());
             }
@@ -63,9 +63,19 @@ public class AlertGeneratorScheduler {
         if (makeSuspicious) {
             int failedPayments = 5 + RANDOM.nextInt(15);
             int succeeded = 1 + RANDOM.nextInt(5);
-            double offerPrice = 2000 + RANDOM.nextInt(6000);
-            int offers = 1 + RANDOM.nextInt(10);
-            int incidents = 2 + RANDOM.nextInt(8);
+            double offerPrice;
+            int scenario = RANDOM.nextInt(4);
+            if (scenario == 0) {
+                offerPrice = 1247.50;  // triggers DuplicateOfferRule
+            } else if (scenario == 1) {
+                offerPrice = 1789.99;  // triggers DuplicateOfferRule
+            } else if (scenario == 2) {
+                offerPrice = 2456.00;  // triggers DuplicateOfferRule
+            } else {
+                offerPrice = 2000 + RANDOM.nextInt(6000);
+            }
+            int offers = RANDOM.nextInt(50);  // may trigger RapidChangeRule
+            int incidents = 8 + RANDOM.nextInt(30);
             return new Transaction(carrier, transport, failedPayments, succeeded, offerPrice, offers, incidents);
         } else {
             int failedPayments = RANDOM.nextInt(3);
