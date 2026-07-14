@@ -1,7 +1,7 @@
 # FraudSentinel 🔍
 
 
-> AI-powered carrier fraud investigation platform built with Spring Boot, React and MongoDB.
+> > Enterprise-grade carrier fraud detection platform with rule engine, SIEM auto-generator, and compliance-ready audit trails.
 
 
 🌐 **Live App:** https://fraudsentinel-app.onrender.com
@@ -187,13 +187,15 @@ The email/MFA restrictions on staff (least privilege) prevent an insider from si
 
 ## 🎲 Detection rules
 
-Three rules implemented with the Strategy pattern. Adding a new rule is a new class implementing the same interface, no changes to the dispatcher.
+Five rules implemented with the Strategy pattern. Adding a new rule is a new class implementing the same interface, no changes to the dispatcher.
 
 | Rule | Triggers on | Severity logic | Routes to |
 |------|-------------|----------------|-----------|
 | PaymentReconciliationRule | High unpaid invoice ratio | 0.0 to 1.0 by percent unpaid | MEDIATION |
 | OfferPriceEscalationRule | Offer price more than 50% above baseline | 0.0 to 1.0 by deviation | FRAUD_INVESTIGATION |
 | ComplaintAccumulationRule | Multiple complaint categories accumulating | 0.0 to 1.0 by incident weight | LEGAL or INSURANCE |
+| DuplicateOfferRule | Known duplicate pricing patterns (mirror/collusion) | 0.6 fixed | FRAUD_INVESTIGATION |
+| RapidChangeRule | Unusually high offer counts (dumping/flooding) | 0.3 to 1.0 by offer volume | MEDIATION |
 
 Domain validation rejects impossible inputs at the boundary — for example, 25 incidents on 2 offers returns 422 with an RFC 7807 problem document.
 
