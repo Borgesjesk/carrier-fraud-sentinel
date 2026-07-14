@@ -27,6 +27,15 @@ public class FraudDetectionService {
         this.alertRepository = alertRepository;
     }
 
+    public RiskAlert analyseAndTag(Transaction transaction, String createdBy) {
+        RiskAlert alert = analyse(transaction);
+        if (alert != null && createdBy != null) {
+            alert.setCreatedBy(createdBy);
+            alertRepository.save(alert);
+        }
+        return alert;
+    }
+
     public RiskAlert analyse(Transaction transaction) {
         Objects.requireNonNull(transaction, "Transaction cannot be null");
 

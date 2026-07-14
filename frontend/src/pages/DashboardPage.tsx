@@ -57,7 +57,7 @@ export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
-  const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned' | 'stale'>('all');
+  const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned' | 'stale' | 'siem' | 'client'>('all');
   const [severityFilter, setSeverityFilter] = useState<string | null>(null);
   const [deptFilter, setDeptFilter] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -118,6 +118,8 @@ export function DashboardPage() {
       if (filter === 'mine' && alert.assignedTo !== user?.username) return false;
       if (filter === 'unassigned' && alert.status !== 'UNASSIGNED') return false;
       if (filter === 'stale' && !alert.isStale) return false;
+      if (filter === 'siem' && alert.createdBy !== 'SIEM_SCHEDULER') return false;
+      if (filter === 'client' && (!alert.createdBy || alert.createdBy === 'SIEM_SCHEDULER')) return false;
       if (severityFilter && alert.severity !== severityFilter) return false;
       if (deptFilter && alert.assignedDepartment !== deptFilter) return false;
       if (searchQuery) {
@@ -350,7 +352,7 @@ const toggleSelect = (id: string) => {
                       <span>Export CSV</span>
                       </button>
                       <div className="flex gap-1 bg-slate-900/50 border border-slate-800 rounded-lg p-1">
-                        {(['all', 'unassigned', 'mine', 'stale'] as const).map((f) => (
+                        {(['all', 'unassigned', 'mine', 'stale', 'siem', 'client'] as const).map((f) => (
                           <button
                             key={f}
                             onClick={() => setFilter(f)}
@@ -360,7 +362,7 @@ const toggleSelect = (id: string) => {
                                 : 'text-slate-400 hover:text-slate-200'
                             }`}
                           >
-                            {f === 'all' ? 'All' : f === 'unassigned' ? 'Unassigned' : f === 'mine' ? 'Mine' : 'Stale'}
+                            {f === 'all' ? 'All' : f === 'unassigned' ? 'Unassigned' : f === 'mine' ? 'Mine' : f === 'stale' ? 'Stale' : f === 'siem' ? 'System' : 'Client'}
                             {f === 'unassigned' && alerts.filter((a) => a.status === 'UNASSIGNED').length > 0 && (
                               <span className="ml-1 text-slate-500">
                                 ({alerts.filter((a) => a.status === 'UNASSIGNED').length})

@@ -43,8 +43,10 @@ public class AlertGeneratorScheduler {
         if (!enabled) return;
         try {
             Transaction t = createTransaction();
-            RiskAlert alert = fraudDetectionService.analyse(t);
+            RiskAlert alert = fraudDetectionService.analyseAndTag(t, "SIEM_SCHEDULER");
             if (alert != null) {
+                
+                
                 log.info("SIEM auto-generated alert: carrier={} severity={} rule={}",
                         alert.getCarrierName(), alert.getSeverity(), alert.getTriggeredRuleNames());
             }
