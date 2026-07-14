@@ -1,7 +1,7 @@
 # FraudSentinel 🔍
 
 
-> > Enterprise-grade carrier fraud detection platform with rule engine, SIEM auto-generator, and compliance-ready audit trails.
+> Enterprise-grade carrier fraud detection platform with rule engine, SIEM auto-generator, and compliance-ready audit trails.
 
 
 🌐 **Live App:** https://fraudsentinel-app.onrender.com
