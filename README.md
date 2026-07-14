@@ -1,18 +1,56 @@
 # FraudSentinel 🔍
 
-**Live app:** https://fraudsentinel-app.onrender.com  
-**Live backend:** https://fraudsentinel-api-mpb5.onrender.com  
-**Swagger UI:** https://fraudsentinel-api-mpb5.onrender.com/swagger-ui.html  
-_(cold start ~30s on first request)_
 
-**Project board:** https://github.com/users/Borgesjesk/projects/3  
-**User stories:** [docs/USER_STORIES.md](docs/USER_STORIES.md)
+> AI-powered carrier fraud investigation platform built with Spring Boot, React and MongoDB.
+
+## 🚀 Quick Links
+
+🌐 **Live App:** https://fraudsentinel-app.onrender.com
+
+⚙️ **Swagger UI:** https://fraudsentinel-api-mpb5.onrender.com/swagger-ui.html
+
+🎥 **Live Demo:** https://drive.google.com/file/d/16jgFYuyL9U-rBRgJFPh5Bz3dZ7wKKL-8/view?usp=sharing
+
+📋 **Project Board:** https://github.com/users/Borgesjesk/projects/3
+
+📖 **User Stories:** [docs/USER_STORIES.md](docs/USER_STORIES.md)
 
 [![CI](https://github.com/Borgesjesk/carrier-fraud-sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Borgesjesk/carrier-fraud-sentinel/actions/workflows/ci.yml)
 
 A carrier fraud detection platform with role-based access control, multi-channel case management, real-time alert routing, an auto-generating SIEM feed, and enterprise-grade authentication including MFA, IP allowlisting, admin recovery, session management, and audit logging.
 
 Built as the final project for the IT Academy Barcelona Java Backend bootcamp. The design comes directly from six years of fraud investigation work at a European freight exchange, where I dealt daily with the patterns this system detects: carriers gaming payment terms, escalating offer prices, and accumulating complaints across multiple categories.
+
+---
+# 🎥 Live Demo
+
+Want to see FraudSentinel in action before exploring the code?
+
+▶️ **Watch the full demo (1m 36s)**
+
+https://drive.google.com/file/d/16jgFYuyL9U-rBRgJFPh5Bz3dZ7wKKL-8/view?usp=sharing
+
+### 🚀 What you'll see
+
+🔐 Secure authentication
+
+🔒 Multi-Factor Authentication (MFA)
+
+📊 Fraud investigation dashboard
+
+📂 Multi-channel case management
+
+🚨 Real-time alert routing
+
+🎯 Rule-based fraud detection
+
+⚙️ SIEM feed auto-generation
+
+🛡️ Role-Based Access Control (RBAC)
+
+📈 Analytics dashboard
+
+📜 Audit logging
 
 ---
 
