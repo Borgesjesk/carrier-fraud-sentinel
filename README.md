@@ -3,7 +3,6 @@
 
 > AI-powered carrier fraud investigation platform built with Spring Boot, React and MongoDB.
 
-## 🚀 Quick Links
 
 🌐 **Live App:** https://fraudsentinel-app.onrender.com
 
@@ -30,7 +29,6 @@ Want to see FraudSentinel in action before exploring the code?
 
 https://drive.google.com/file/d/16jgFYuyL9U-rBRgJFPh5Bz3dZ7wKKL-8/view?usp=sharing
 
-### 🚀 What you'll see
 
 🔐 Secure authentication
 
